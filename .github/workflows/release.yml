@@ -66,6 +66,10 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
+      - name: npm 11 for trusted publishing (OIDC needs npm 11.5.1 or newer)
+        run: |
+          npm install --global npm@11
+          npm --version
       - run: npm ci --ignore-scripts
       - run: npm run build
       - name: Publish with provenance (trusted publishing)
