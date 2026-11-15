@@ -6,10 +6,9 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-11-15
 
-First public release candidate, to be published as `@pedrofnj/agentforge` (command:
-`agentforge`). Not yet published to npm.
+First public release, published as `@pedrofnj/agentforge` (command: `agentforge`).
 
 ### Added
 

@@ -1,7 +1,7 @@
 # Updating
 
-1. Update the CLI itself (until npm publication: pull, rebuild and reinstall the tarball as in
-   [installation.md](installation.md)).
+1. Update the CLI itself: `npm install --global @pedrofnj/agentforge@latest` (with npx,
+   `@latest` always fetches the newest version).
 2. Update installed components:
 
 ```bash

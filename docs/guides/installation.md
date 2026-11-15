@@ -4,19 +4,21 @@
 
 ## 1. Get the CLI
 
-Requires Node.js 22+. After the first npm release this step becomes
-`npx @pedrofnj/agentforge@latest install` (or `npm install --global @pedrofnj/agentforge`).
-The package is not on npm yet; build it from source once:
+Requires Node.js 22+. Run it on demand, with no install:
 
 ```bash
-git clone https://github.com/pedrofnj/agentforge.git
-cd agentforge
-npm ci && npm run build && npm pack
-npm install --global ./pedrofnj-agentforge-0.1.0.tgz
+npx @pedrofnj/agentforge@latest install
+```
+
+Or install the `agentforge` command once:
+
+```bash
+npm install --global @pedrofnj/agentforge
 agentforge --version
 ```
 
-Without a global install, run `node /path/to/agentforge/dist/cli/bin.js` instead of `agentforge`.
+The examples below use `agentforge`; with npx, write `npx @pedrofnj/agentforge@latest` instead.
+To work on AgentForge itself, see [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 ## 2. Choose client and scope
 

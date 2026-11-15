@@ -4,19 +4,21 @@
 
 ## 1. Obter o CLI
 
-Requer Node.js 22+. Depois da primeira publicação no npm, este passo passa a ser
-`npx @pedrofnj/agentforge@latest install` (ou `npm install --global @pedrofnj/agentforge`).
-O pacote ainda não está no npm; gere-o a partir do código uma vez:
+Requer Node.js 22+. Rode sob demanda, sem instalar:
 
 ```bash
-git clone https://github.com/pedrofnj/agentforge.git
-cd agentforge
-npm ci && npm run build && npm pack
-npm install --global ./pedrofnj-agentforge-0.1.0.tgz
+npx @pedrofnj/agentforge@latest install
+```
+
+Ou instale o comando `agentforge` uma vez:
+
+```bash
+npm install --global @pedrofnj/agentforge
 agentforge --version
 ```
 
-Sem instalação global, use `node /caminho/para/agentforge/dist/cli/bin.js` no lugar de `agentforge`.
+Os exemplos abaixo usam `agentforge`; com npx, escreva `npx @pedrofnj/agentforge@latest` no lugar.
+Para trabalhar no próprio AgentForge, veja [CONTRIBUTING.pt-BR.md](../../CONTRIBUTING.pt-BR.md).
 
 ## 2. Escolher cliente e escopo
 

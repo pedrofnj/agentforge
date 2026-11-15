@@ -39,6 +39,12 @@ generated output changes; `agentforge update` uses it (and never downgrades).
    `npm view @pedrofnj/agentforge version` and `npx @pedrofnj/agentforge@x.y.z --version` in a clean directory.
 9. Create the GitHub release from the release notes (manual, after verification).
 
+First release (0.1.0): npm trusted publishing can only be configured for a package that
+already exists, so 0.1.0 was published once from a maintainer workstation (`npm publish
+--access public`, interactive 2FA) at the validated commit. The `v0.1.0` tag then runs the
+release workflow, which validates everything and skips publishing because the version exists.
+From 0.1.1 on, releases go through the workflow only.
+
 One-time setup (repository owner): create the `npm-release` environment with required
 reviewers; configure npm trusted publishing for this repository and workflow (`release.yml`);
 enable GitHub private vulnerability reporting. No npm token is stored anywhere.
