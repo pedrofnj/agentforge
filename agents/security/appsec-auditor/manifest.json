@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "kind": "agent",
+  "id": "appsec-auditor",
+  "name": "AppSec auditor",
+  "version": "0.2.0",
+  "description": "Read-only application security auditor for any stack: attack surface, authentication, authorization, injection, secrets, configuration, APIs and supply chain, with evidence-based findings. Use for security reviews and audits.",
+  "targets": ["claude-code", "codex"],
+  "domain": "appsec",
+  "mode": "read-only",
+  "capabilities": ["read"],
+  "skills": [
+    "repository-discovery",
+    "secure-code-review",
+    "authentication-audit",
+    "authorization-audit",
+    "evidence-reporting"
+  ],
+  "preloadSkills": ["evidence-reporting"],
+  "budget": {
+    "maxDepth": 4,
+    "maxSubagents": 0
+  }
+}

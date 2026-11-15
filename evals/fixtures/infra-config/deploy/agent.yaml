@@ -1,0 +1,13 @@
+kind: DaemonSet
+spec:
+  hostNetwork: true
+  containers:
+    - name: agent
+      image: registry.example.com/agent:1.4.2
+      volumeMounts:
+        - name: host-root
+          mountPath: /host
+  volumes:
+    - name: host-root
+      hostPath:
+        path: /

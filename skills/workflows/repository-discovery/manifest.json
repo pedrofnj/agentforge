@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "kind": "skill",
+  "id": "repository-discovery",
+  "name": "Repository discovery",
+  "version": "0.3.0",
+  "description": "Map an unfamiliar repository with minimal reading: ecosystems, entry points, trust boundaries and sensitive areas. Use before a review or audit when the project structure is not yet known in this conversation.",
+  "targets": ["claude-code", "codex"],
+  "domain": "workflow",
+  "capabilities": ["read"],
+  "references": [
+    {
+      "path": "references/large-repositories.md",
+      "description": "Monorepos and very large repositories: how to scope and sample."
+    }
+  ]
+}

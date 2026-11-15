@@ -1,0 +1,4 @@
+debug: true
+cors:
+  allowed_origins: "*"
+  allow_credentials: true

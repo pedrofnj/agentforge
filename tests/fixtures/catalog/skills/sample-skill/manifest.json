@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "kind": "skill",
+  "id": "sample-skill",
+  "name": "Sample skill",
+  "version": "1.0.0",
+  "description": "Fixture skill used by tests.",
+  "targets": ["claude-code", "codex"],
+  "references": [
+    { "path": "references/checklist.md", "description": "Generic checklist." },
+    {
+      "path": "references/example-stack.md",
+      "description": "Specialization for a fictional stack.",
+      "appliesWhen": ["example.lock"]
+    }
+  ]
+}

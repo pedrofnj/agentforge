@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "agent",
+  "id": "infrastructure-reviewer",
+  "name": "Infrastructure reviewer",
+  "version": "0.3.0",
+  "description": "Read-only reviewer of deployment, container, CI/CD and infrastructure files in a repository: privileges, exposed secrets, network exposure, resilience and observability. Use for infrastructure and pipeline reviews.",
+  "targets": ["claude-code", "codex"],
+  "domain": "infrastructure",
+  "mode": "read-only",
+  "capabilities": ["read"],
+  "skills": ["repository-discovery", "secure-code-review", "evidence-reporting"],
+  "preloadSkills": ["evidence-reporting"],
+  "budget": {
+    "maxDepth": 3,
+    "maxSubagents": 0
+  }
+}

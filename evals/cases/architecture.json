@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "arch-cycle-py",
+      "category": "architecture",
+      "subcategory": "circular-dependency",
+      "kind": "vulnerable",
+      "description": "orders and billing import each other.",
+      "fixture": "arch-python",
+      "agent": "architecture-reviewer",
+      "files": ["shop/billing.py", "shop/orders.py"],
+      "expected": {
+        "issue": "circular dependency between orders and billing",
+        "evidence": [
+          {
+            "file": "shop/billing.py",
+            "contains": "from shop import orders"
+          }
+        ],
+        "severity": "medium",
+        "keywords": ["circular", "cycle", "mutual"]
+      },
+      "acceptance": [
+        "A finding located in shop/billing.py within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "arch-coupling-py",
+      "category": "architecture",
+      "subcategory": "excessive-coupling",
+      "kind": "vulnerable",
+      "description": "reports reads private state of two modules.",
+      "fixture": "arch-python",
+      "agent": "architecture-reviewer",
+      "files": ["shop/reports.py"],
+      "expected": {
+        "issue": "module depends on other modules' private internals",
+        "evidence": [
+          {
+            "file": "shop/reports.py",
+            "contains": "orders._ORDERS"
+          }
+        ],
+        "severity": "medium",
+        "keywords": ["coupling", "private", "internal", "encapsulat"]
+      },
+      "acceptance": [
+        "A finding located in shop/reports.py within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "arch-responsibilities-py",
+      "category": "architecture",
+      "subcategory": "mixed-responsibilities",
+      "kind": "vulnerable",
+      "description": "One handler parses input, prices, persists and sends email.",
+      "fixture": "arch-python",
+      "agent": "architecture-reviewer",
+      "files": ["shop/handlers.py"],
+      "expected": {
+        "issue": "transport, business rules, persistence and notification mixed in one function",
+        "evidence": [
+          {
+            "file": "shop/handlers.py",
+            "contains": "def checkout(request, db):"
+          }
+        ],
+        "severity": "medium",
+        "keywords": ["responsibilit", "separation", "layer", "mixed", "concern"]
+      },
+      "acceptance": [
+        "A finding located in shop/handlers.py within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "arch-complexity-py",
+      "category": "architecture",
+      "subcategory": "unnecessary-complexity",
+      "kind": "vulnerable",
+      "description": "Factory, registry and abstract base for a single exporter.",
+      "fixture": "arch-python",
+      "agent": "architecture-reviewer",
+      "files": ["shop/plugins.py"],
+      "expected": {
+        "issue": "abstraction layers without a second implementation",
+        "evidence": [
+          {
+            "file": "shop/plugins.py",
+            "contains": "class AbstractExporterFactory:"
+          }
+        ],
+        "severity": "low",
+        "keywords": ["complex", "abstraction", "factory", "over-engineer", "indirection"]
+      },
+      "acceptance": [
+        "A finding located in shop/plugins.py within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "arch-layering-ts",
+      "category": "architecture",
+      "subcategory": "mixed-responsibilities",
+      "kind": "vulnerable",
+      "description": "Route handler talks to the database directly.",
+      "fixture": "typescript-api",
+      "agent": "architecture-reviewer",
+      "files": ["src/routes/documents.ts"],
+      "expected": {
+        "issue": "route handler accesses storage directly without a service boundary",
+        "evidence": [
+          {
+            "file": "src/routes/documents.ts",
+            "contains": "db.documents"
+          }
+        ],
+        "severity": "low",
+        "keywords": ["layer", "boundary", "database", "responsibilit", "coupling"]
+      },
+      "acceptance": [
+        "A finding located in src/routes/documents.ts within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": ["Small services often do this on purpose; low severity is expected."]
+    },
+    {
+      "id": "arch-safe-pricing-py",
+      "category": "architecture",
+      "subcategory": "excessive-coupling",
+      "kind": "safe",
+      "description": "Pure, self-contained function module.",
+      "fixture": "arch-python",
+      "agent": "architecture-reviewer",
+      "files": ["shop/pricing.py"],
+      "keywords": ["coupling", "complex", "responsibilit", "cycle"],
+      "acceptance": ["No confirmed or likely finding about excessive-coupling in shop/pricing.py"],
+      "falsePositive": ["Reporting coupling, cycles or complexity in shop/pricing.py"],
+      "limitations": []
+    }
+  ]
+}

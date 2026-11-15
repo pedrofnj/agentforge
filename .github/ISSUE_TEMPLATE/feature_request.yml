@@ -1,0 +1,26 @@
+name: Feature or component request
+description: Propose a CLI feature, an agent, a skill or a benchmark case.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        English or Portuguese is fine. Proposals must stay stack-agnostic (technology-specific
+        knowledge goes into optional references) and should say how the change can be verified.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or use case
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: How could it be verified?
+      description: Tests, a benchmark case, a client behavior to check, a metric.

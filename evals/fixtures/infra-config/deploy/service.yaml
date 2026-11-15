@@ -1,0 +1,9 @@
+kind: Deployment
+spec:
+  containers:
+    - name: api
+      image: registry.example.com/api:latest
+      securityContext:
+        privileged: true
+      ports:
+        - containerPort: 8080

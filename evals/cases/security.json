@@ -1,0 +1,534 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "sec-auth-weak-hash-py",
+      "category": "security",
+      "subcategory": "insecure-authentication",
+      "kind": "vulnerable",
+      "description": "Passwords hashed with a fast unsalted hash.",
+      "fixture": "python-service",
+      "agent": "appsec-auditor",
+      "skill": "authentication-audit",
+      "references": ["references/credential-storage.md"],
+      "files": ["app/auth.py"],
+      "expected": {
+        "issue": "fast unsalted password hash",
+        "evidence": [
+          {
+            "file": "app/auth.py",
+            "contains": "hashlib.md5"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["md5", "hash", "password"],
+        "cwe": "CWE-916"
+      },
+      "acceptance": [
+        "A finding located in app/auth.py within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-auth-plaintext-ts",
+      "category": "security",
+      "subcategory": "insecure-authentication",
+      "kind": "vulnerable",
+      "description": "Passwords stored and compared in plaintext.",
+      "fixture": "typescript-api",
+      "agent": "appsec-auditor",
+      "skill": "authentication-audit",
+      "references": ["references/credential-storage.md"],
+      "files": ["src/auth/login.ts"],
+      "expected": {
+        "issue": "plaintext password storage and comparison",
+        "evidence": [
+          {
+            "file": "src/auth/login.ts",
+            "contains": "user.password === req.body.password"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["plaintext", "password", "hash"],
+        "cwe": "CWE-256"
+      },
+      "acceptance": [
+        "A finding located in src/auth/login.ts within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-auth-session-go",
+      "category": "security",
+      "subcategory": "insecure-authentication",
+      "kind": "vulnerable",
+      "description": "Session identifier derived from user id and clock.",
+      "fixture": "go-service",
+      "agent": "appsec-auditor",
+      "skill": "authentication-audit",
+      "references": ["references/session-management.md"],
+      "files": ["internal/auth/session.go"],
+      "expected": {
+        "issue": "predictable session identifier",
+        "evidence": [
+          {
+            "file": "internal/auth/session.go",
+            "contains": "time.Now().Unix()"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["session", "predictable", "random"],
+        "cwe": "CWE-330"
+      },
+      "acceptance": [
+        "A finding located in internal/auth/session.go within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-auth-token-rust",
+      "category": "security",
+      "subcategory": "insecure-authentication",
+      "kind": "vulnerable",
+      "description": "Any non-empty token is accepted.",
+      "fixture": "rust-cli",
+      "agent": "appsec-auditor",
+      "skill": "authentication-audit",
+      "references": ["references/token-validation.md"],
+      "files": ["src/token.rs"],
+      "expected": {
+        "issue": "token accepted without verification",
+        "evidence": [
+          {
+            "file": "src/token.rs",
+            "contains": "!token.is_empty()"
+          }
+        ],
+        "severity": "critical",
+        "keywords": ["token", "verif", "signature", "authenticat"],
+        "cwe": "CWE-287"
+      },
+      "acceptance": [
+        "A finding located in src/token.rs within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-auth-md5-php",
+      "category": "security",
+      "subcategory": "insecure-authentication",
+      "kind": "vulnerable",
+      "description": "Passwords hashed with MD5.",
+      "fixture": "php-app",
+      "agent": "appsec-auditor",
+      "skill": "authentication-audit",
+      "references": ["references/credential-storage.md"],
+      "files": ["src/Auth.php"],
+      "expected": {
+        "issue": "fast unsalted password hash",
+        "evidence": [
+          {
+            "file": "src/Auth.php",
+            "contains": "md5($password)"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["md5", "hash", "password"],
+        "cwe": "CWE-916"
+      },
+      "acceptance": [
+        "A finding located in src/Auth.php within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-authz-missing-admin-ts",
+      "category": "security",
+      "subcategory": "insufficient-authorization",
+      "kind": "vulnerable",
+      "description": "Admin-only deletion without any role check.",
+      "fixture": "typescript-api",
+      "agent": "appsec-auditor",
+      "skill": "authorization-audit",
+      "references": ["references/privilege-escalation.md"],
+      "files": ["src/routes/admin.ts"],
+      "expected": {
+        "issue": "missing authorization on an administrative action",
+        "evidence": [
+          {
+            "file": "src/routes/admin.ts",
+            "contains": "db.users.delete(req.params.userId)"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["authoriz", "admin", "role", "access control", "permission"],
+        "cwe": "CWE-862"
+      },
+      "acceptance": [
+        "A finding located in src/routes/admin.ts within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-idor-py",
+      "category": "security",
+      "subcategory": "idor-bola",
+      "kind": "vulnerable",
+      "description": "Order fetched by id without owner check.",
+      "fixture": "python-service",
+      "agent": "appsec-auditor",
+      "skill": "authorization-audit",
+      "references": ["references/object-level-access.md"],
+      "files": ["app/orders.py"],
+      "expected": {
+        "issue": "object lookup without ownership check (IDOR/BOLA)",
+        "evidence": [
+          {
+            "file": "app/orders.py",
+            "contains": "WHERE id = %s"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["idor", "bola", "owner", "authoriz", "access control"],
+        "cwe": "CWE-639"
+      },
+      "acceptance": [
+        "A finding located in app/orders.py within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-idor-go",
+      "category": "security",
+      "subcategory": "idor-bola",
+      "kind": "vulnerable",
+      "description": "Invoice fetched by id without owner check.",
+      "fixture": "go-service",
+      "agent": "appsec-auditor",
+      "skill": "authorization-audit",
+      "references": ["references/object-level-access.md"],
+      "files": ["internal/web/invoices.go"],
+      "expected": {
+        "issue": "object lookup without ownership check (IDOR/BOLA)",
+        "evidence": [
+          {
+            "file": "internal/web/invoices.go",
+            "contains": "store.Find(id)"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["idor", "bola", "owner", "authoriz", "access control"],
+        "cwe": "CWE-639"
+      },
+      "acceptance": [
+        "A finding located in internal/web/invoices.go within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-idor-ts",
+      "category": "security",
+      "subcategory": "idor-bola",
+      "kind": "vulnerable",
+      "description": "Document fetched by id without owner check.",
+      "fixture": "typescript-api",
+      "agent": "appsec-auditor",
+      "skill": "authorization-audit",
+      "references": ["references/object-level-access.md"],
+      "files": ["src/routes/documents.ts"],
+      "expected": {
+        "issue": "object lookup without ownership check (IDOR/BOLA)",
+        "evidence": [
+          {
+            "file": "src/routes/documents.ts",
+            "contains": "findById(req.params.id)"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["idor", "bola", "owner", "authoriz", "access control"],
+        "cwe": "CWE-639"
+      },
+      "acceptance": [
+        "A finding located in src/routes/documents.ts within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-idor-php",
+      "category": "security",
+      "subcategory": "idor-bola",
+      "kind": "vulnerable",
+      "description": "Report fetched by id without owner or tenant filter.",
+      "fixture": "php-app",
+      "agent": "appsec-auditor",
+      "skill": "authorization-audit",
+      "references": ["references/object-level-access.md"],
+      "files": ["src/Report.php"],
+      "expected": {
+        "issue": "object lookup without ownership or tenant check (IDOR/BOLA)",
+        "evidence": [
+          {
+            "file": "src/Report.php",
+            "contains": "WHERE id = ?"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["idor", "bola", "owner", "tenant", "authoriz"],
+        "cwe": "CWE-639"
+      },
+      "acceptance": [
+        "A finding located in src/Report.php within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-secret-py",
+      "category": "security",
+      "subcategory": "secret-exposure",
+      "kind": "vulnerable",
+      "description": "Secret key committed in source.",
+      "fixture": "python-service",
+      "agent": "appsec-auditor",
+      "skill": "secure-code-review",
+      "references": ["references/vulnerability-classes.md"],
+      "files": ["app/auth.py"],
+      "expected": {
+        "issue": "hardcoded secret in source code",
+        "evidence": [
+          {
+            "file": "app/auth.py",
+            "contains": "SECRET_KEY ="
+          }
+        ],
+        "severity": "medium",
+        "keywords": ["secret", "hardcoded", "credential"],
+        "cwe": "CWE-798"
+      },
+      "acceptance": [
+        "A finding located in app/auth.py within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": [
+        "The value is a placeholder; acceptable severities are low to high depending on the stated scope."
+      ]
+    },
+    {
+      "id": "sec-path-traversal-rust",
+      "category": "security",
+      "subcategory": "input-validation",
+      "kind": "vulnerable",
+      "description": "User input joined into a file path without checks.",
+      "fixture": "rust-cli",
+      "agent": "appsec-auditor",
+      "skill": "secure-code-review",
+      "references": ["references/vulnerability-classes.md"],
+      "files": ["src/files.rs"],
+      "expected": {
+        "issue": "path traversal from user-controlled file name",
+        "evidence": [
+          {
+            "file": "src/files.rs",
+            "contains": "/srv/data/{}"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["traversal", "path", "directory"],
+        "cwe": "CWE-22"
+      },
+      "acceptance": [
+        "A finding located in src/files.rs within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-sqli-php",
+      "category": "security",
+      "subcategory": "injection",
+      "kind": "vulnerable",
+      "description": "SQL built by concatenating the user name.",
+      "fixture": "php-app",
+      "agent": "appsec-auditor",
+      "skill": "secure-code-review",
+      "references": ["references/vulnerability-classes.md"],
+      "files": ["src/Auth.php"],
+      "expected": {
+        "issue": "SQL injection via string concatenation",
+        "evidence": [
+          {
+            "file": "src/Auth.php",
+            "contains": ". $user ."
+          }
+        ],
+        "severity": "critical",
+        "keywords": ["sql", "injection", "concaten"],
+        "cwe": "CWE-89"
+      },
+      "acceptance": [
+        "A finding located in src/Auth.php within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-config-py",
+      "category": "security",
+      "subcategory": "insecure-configuration",
+      "kind": "vulnerable",
+      "description": "Debug enabled and any origin allowed with credentials.",
+      "fixture": "python-service",
+      "agent": "appsec-auditor",
+      "skill": "secure-code-review",
+      "references": ["references/configuration-review.md"],
+      "files": ["config/settings.yaml"],
+      "expected": {
+        "issue": "permissive CORS with credentials and debug mode",
+        "evidence": [
+          {
+            "file": "config/settings.yaml",
+            "contains": "allowed_origins: \"*\""
+          }
+        ],
+        "severity": "medium",
+        "keywords": ["cors", "origin", "debug", "configuration"],
+        "cwe": "CWE-942"
+      },
+      "acceptance": [
+        "A finding located in config/settings.yaml within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "sec-vulnerable-dependency-java",
+      "category": "security",
+      "subcategory": "vulnerable-dependency",
+      "kind": "vulnerable",
+      "description": "log4j-core 2.14.1 (CVE-2021-44228) logs attacker-controlled input.",
+      "fixture": "java-service",
+      "agent": "appsec-auditor",
+      "skill": "secure-code-review",
+      "references": ["references/api-and-supply-chain.md"],
+      "files": ["pom.xml", "src/main/java/example/AuditController.java"],
+      "expected": {
+        "issue": "dependency with a known critical vulnerability (CVE-2021-44228) reachable from logged user input",
+        "evidence": [
+          {
+            "file": "pom.xml",
+            "contains": "<version>2.14.1</version>"
+          }
+        ],
+        "severity": "critical",
+        "keywords": ["log4j", "cve-2021-44228", "vulnerable", "dependency"],
+        "cwe": "CWE-1395"
+      },
+      "acceptance": [
+        "A finding located in pom.xml within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": [
+        "Agents without web access may report it as likely or needs investigation; acceptance requires the dependency line and the package name."
+      ]
+    },
+    {
+      "id": "sec-safe-profile-py",
+      "category": "security",
+      "subcategory": "idor-bola",
+      "kind": "safe",
+      "description": "Profile lookup filters by owner and uses parameters.",
+      "fixture": "python-service",
+      "agent": "appsec-auditor",
+      "files": ["app/users.py"],
+      "keywords": ["idor", "bola", "injection", "sql", "owner", "authoriz"],
+      "acceptance": ["No confirmed or likely finding about idor-bola in app/users.py"],
+      "falsePositive": ["Reporting injection or missing ownership checks in app/users.py"],
+      "limitations": []
+    },
+    {
+      "id": "sec-safe-hash-ts",
+      "category": "security",
+      "subcategory": "insecure-authentication",
+      "kind": "safe",
+      "description": "Salted scrypt with constant-time comparison.",
+      "fixture": "typescript-api",
+      "agent": "appsec-auditor",
+      "files": ["src/auth/hash.ts"],
+      "keywords": ["hash", "password", "timing", "salt"],
+      "acceptance": [
+        "No confirmed or likely finding about insecure-authentication in src/auth/hash.ts"
+      ],
+      "falsePositive": ["Reporting weak hashing or timing attacks in src/auth/hash.ts"],
+      "limitations": []
+    },
+    {
+      "id": "sec-safe-paths-rust",
+      "category": "security",
+      "subcategory": "input-validation",
+      "kind": "safe",
+      "description": "Canonicalized path confined to a base directory.",
+      "fixture": "rust-cli",
+      "agent": "appsec-auditor",
+      "files": ["src/safe_files.rs"],
+      "keywords": ["traversal", "path"],
+      "acceptance": ["No confirmed or likely finding about input-validation in src/safe_files.rs"],
+      "falsePositive": ["Reporting path traversal in src/safe_files.rs"],
+      "limitations": []
+    },
+    {
+      "id": "sec-safe-prepared-php",
+      "category": "security",
+      "subcategory": "injection",
+      "kind": "safe",
+      "description": "Report lookup uses a prepared statement (it has an IDOR, not an injection).",
+      "fixture": "php-app",
+      "agent": "appsec-auditor",
+      "files": ["src/Report.php"],
+      "keywords": ["sql", "injection"],
+      "acceptance": ["No confirmed or likely finding about injection in src/Report.php"],
+      "falsePositive": ["Reporting SQL injection in src/Report.php"],
+      "limitations": [
+        "The same file contains a real IDOR (sec-idor-php); only injection claims count as false positives."
+      ]
+    }
+  ]
+}

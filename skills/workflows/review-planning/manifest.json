@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "skill",
+  "id": "review-planning",
+  "name": "Review planning",
+  "version": "0.3.0",
+  "description": "Plan a code review or audit before starting it: pick the analysis profile and the fewest specialist agents, and merge their reports. Use for full or multi-area reviews, or when unsure which reviewer fits the request.",
+  "targets": ["claude-code", "codex"],
+  "domain": "workflow",
+  "capabilities": ["read"],
+  "requires": ["repository-discovery", "evidence-reporting"],
+  "references": [
+    {
+      "path": "references/agent-selection.md",
+      "description": "Which specialist agent fits which request, and signals that justify adding one."
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+trigger: pull_request
+jobs:
+  deploy:
+    runner: shared
+    steps:
+      - uses: third-party/deploy-action@main
+      - run: ./deploy.sh --token $DEPLOY_TOKEN

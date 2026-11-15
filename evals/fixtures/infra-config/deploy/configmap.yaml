@@ -1,0 +1,4 @@
+kind: ConfigMap
+data:
+  DB_HOST: db.internal
+  DB_PASSWORD: changeme-not-a-real-secret

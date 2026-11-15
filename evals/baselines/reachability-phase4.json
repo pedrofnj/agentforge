@@ -1,0 +1,19 @@
+{
+  "note": "Static search reachability before Phase 5 procedure changes (no model runs).",
+  "casesDigest": "725e4b6bf7f7e554367cb2712b0bacda25456de136e252bd3a6e55943fbcf4b6",
+  "reached": 40,
+  "total": 50,
+  "meanReachableShare": 0.662,
+  "misses": [
+    "arch-complexity-py:architecture-reviewer",
+    "infra-wildcard-iam:infrastructure-reviewer",
+    "perf-quadratic-ts:performance-auditor",
+    "perf-repeated-regex-go:performance-auditor",
+    "qual-off-by-one-go:code-quality-reviewer",
+    "qual-duplication-php:code-quality-reviewer",
+    "sec-authz-missing-admin-ts:appsec-auditor",
+    "sec-authz-missing-admin-ts:authorization-audit",
+    "sec-vulnerable-dependency-java:appsec-auditor",
+    "sec-vulnerable-dependency-java:secure-code-review"
+  ]
+}
