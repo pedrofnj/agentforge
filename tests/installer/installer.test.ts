@@ -490,7 +490,7 @@ describe('dry-run and non-interactive mode', () => {
     [['install', '--client', 'claude', '--all', '--yes'], '--global or --project'],
     [['install', '--client', 'claude', '--project', '--yes'], 'component ids or --all'],
     [['install', '--client', 'claude', '--project', '--all'], 'Use --yes'],
-    [['install', '--client', 'cursor', '--project'], '--client must be one of'],
+    [['install', '--client', 'cursor', '--project'], '--client/--provider must be one of'],
     [['install', '--global', '--project', '--client', 'claude'], 'either --global or --project'],
     [['uninstall', '--project', '--yes'], 'component ids or --all'],
     [['list', '--yes'], 'not supported by "list"'],
@@ -513,7 +513,7 @@ describe('dry-run and non-interactive mode', () => {
     expect(prompter.asked).toEqual([
       'Which client do you want to configure?',
       'Install globally or in the current project?',
-      'Which components do you want to install?',
+      'Which agents do you want to install?',
       'Apply these changes?',
     ]);
     expect(existsSync(codexProject().agent) && existsSync(codexProject().skill)).toBe(true);

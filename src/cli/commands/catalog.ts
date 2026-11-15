@@ -11,7 +11,32 @@ import {
 } from '../../registry/index.js';
 import { COMPONENT_KINDS, SKILL_DOMAINS } from '../../core/types.js';
 import { computeCatalogStats } from '../../evaluation/metrics/context.js';
-import { EXIT, UsageError, type CliContext, type Options } from '../context.js';
+import { readState, stateDirFor } from '../../installer/state.js';
+import type { InstallScope, Platform } from '../../core/types.js';
+import { EXIT, styleOf, UsageError, type CliContext, type Options } from '../context.js';
+
+interface Installed {
+  scope: InstallScope;
+  platform: Platform;
+  version: string;
+}
+
+/** Installed copies of each component id, across both scopes (unreadable state is skipped). */
+async function installedIndex(ctx: CliContext): Promise<Map<string, Installed[]>> {
+  const index = new Map<string, Installed[]>();
+  for (const scope of ['global', 'project'] as const) {
+    try {
+      for (const c of (await readState(stateDirFor(scope, ctx))).components) {
+        const list = index.get(c.id) ?? [];
+        list.push({ scope, platform: c.platform, version: c.version });
+        index.set(c.id, list);
+      }
+    } catch {
+      // reported by doctor and status
+    }
+  }
+  return index;
+}
 
 function formatIssue(i: CatalogIssue): string {
   const where = i.path ? `${i.source}#${i.path}` : i.source;
@@ -34,16 +59,45 @@ export async function runList(ctx: CliContext, opts: Options, root: string): Pro
       (opts.type === undefined || e.manifest.kind === opts.type) &&
       (opts.domain === undefined || e.manifest.domain === opts.domain),
   );
+  const installed = await installedIndex(ctx);
+  if (opts.json) {
+    ctx.out(
+      JSON.stringify(
+        {
+          components: entries.map((entry) => {
+            const r = toRegistryEntry(entry);
+            return {
+              ...r,
+              estimatedDiscoveryTokens: estimateTokens(`${r.id}: ${r.description}`).tokens,
+              installed: installed.get(r.id) ?? [],
+            };
+          }),
+          issues,
+        },
+        null,
+        2,
+      ),
+    );
+    return issues.some((i) => i.severity === 'error') ? EXIT.ERROR : EXIT.OK;
+  }
+  const st = styleOf(ctx);
   if (entries.length === 0) ctx.out(`No matching components in ${root}.`);
   for (const entry of entries) {
     const r = toRegistryEntry(entry);
     const cost = estimateTokens(`${r.id}: ${r.description}`);
     const deps = r.dependencies.length > 0 ? `  needs: ${r.dependencies.join(', ')}` : '';
     const domain = r.domain ? `  ${r.domain}` : '';
+    const copies = installed.get(r.id) ?? [];
+    const where = [
+      ...new Set(copies.map((c) => `${c.scope}${c.version === r.version ? '' : ` ${c.version}`}`)),
+    ];
+    const mark = where.length > 0 ? st.green(`  installed: ${where.join(', ')}`) : '';
     ctx.out(
-      `${r.kind.padEnd(5)} ${r.id}@${r.version}  [${r.targets.join(', ')}]  ~${cost.tokens} tokens (estimated)${domain}${deps}`,
+      `${r.kind.padEnd(5)} ${r.id}@${r.version}  [${r.targets.join(', ')}]  ~${cost.tokens} tokens (estimated)${domain}${deps}${mark}`,
     );
-    if (opts.verbose) ctx.out(`      ${r.name}: ${r.description}\n      source: ${r.source}`);
+    if (opts.verbose)
+      ctx.out(`      ${r.name}: ${r.description}
+      source: ${r.source}`);
   }
   issues.forEach((i) => ctx.err(formatIssue(i)));
   return issues.some((i) => i.severity === 'error') ? EXIT.ERROR : EXIT.OK;

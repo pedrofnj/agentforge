@@ -1,30 +1,33 @@
 # CLI
 
 ```text
-agentforge install   [ids...]  Install components (asks for missing choices on a terminal)
-agentforge list                List available components (reads manifests only)
+agentforge install   [ids...]  Install components (interactive wizard on a terminal)
+agentforge list                Available components and where they are installed
+agentforge status              Installed components, versions, file integrity, available updates
 agentforge update    [ids...]  Update managed components; local edits are preserved
 agentforge uninstall [ids...]  Remove files installed by AgentForge (only if unmodified)
 agentforge doctor              Diagnose installation and compatibility (read-only)
 agentforge validate            Validate catalog components and the files they generate
 agentforge stats               Measure skill sizes, discovery budget and duplication
 agentforge eval <sub>          Benchmarks and evaluation: validate | list | import | report | compare
-agentforge version             Show version
-agentforge help <command>      Command options
+agentforge version             Show version (also --version, -v)
+agentforge help <command>      Command options (also <command> --help)
 ```
 
-| Option                         | Commands                                 | Behavior                                                      |
-| ------------------------------ | ---------------------------------------- | ------------------------------------------------------------- |
-| `--client claude\|codex\|both` | install, update, uninstall, doctor       | Client(s). Required for install when not interactive          |
-| `--global` / `--project`       | install, update, uninstall, doctor       | Scope. Project = current directory                            |
-| `--yes`, `-y`                  | install, update, uninstall               | Apply without confirmation and never prompt. Never overwrites |
-| `--dry-run`                    | install, update, uninstall               | Print the plan, change nothing (exit 3 if it would conflict)  |
-| `--verbose`                    | install, update, uninstall, list, doctor | Per-file actions and paths                                    |
-| `--all`                        | install, uninstall                       | Select every component                                        |
-| `--type skill\|agent`          | list                                     | Filter by kind                                                |
-| `--domain <name>`              | list                                     | Filter by domain (`appsec`, `workflow`, ...)                  |
-| `--json`                       | stats                                    | Machine-readable output                                       |
-| `--catalog <dir>`              | install, update, list, doctor, validate  | Use another catalog directory (development, testing)          |
+| Option                           | Commands                                        | Behavior                                                      |
+| -------------------------------- | ----------------------------------------------- | ------------------------------------------------------------- |
+| `--client claude\|codex\|both`   | install, update, uninstall, status, doctor      | Client(s). Required for install when not interactive          |
+| `--provider claude\|codex\|both` | same as `--client`                              | Alias of `--client` (`claude-code` is accepted too)           |
+| `--global` / `--project`         | install, update, uninstall, status, doctor      | Scope. Project = current directory                            |
+| `--scope global\|project`        | same as `--global`/`--project`                  | Alias; cannot be combined with `--global`/`--project`         |
+| `--yes`, `-y`                    | install, update, uninstall                      | Apply without confirmation and never prompt. Never overwrites |
+| `--dry-run`                      | install, update, uninstall                      | Print the plan, change nothing (exit 3 if it would conflict)  |
+| `--verbose`                      | install, update, uninstall, list, doctor        | Per-file actions and paths                                    |
+| `--all`                          | install, uninstall                              | Select every component                                        |
+| `--type skill\|agent`            | list                                            | Filter by kind                                                |
+| `--domain <name>`                | list                                            | Filter by domain (`appsec`, `workflow`, ...)                  |
+| `--json`                         | list, status, doctor, stats                     | Machine-readable output (nothing else on stdout)              |
+| `--catalog <dir>`                | install, update, list, status, doctor, validate | Use another catalog directory (development, testing)          |
 
 Evaluation (`agentforge eval ...`, offline; see [evaluation.md](evaluation.md)):
 
@@ -40,21 +43,72 @@ Evaluation (`agentforge eval ...`, offline; see [evaluation.md](evaluation.md)):
 
 A command rejects options it does not support.
 
-Exit codes: `0` ok, `1` error, `2` usage, `3` conflicts (nothing changed), `4` cancelled.
+Exit codes: `0` ok, `1` error (including `status`/`doctor` finding problems), `2` usage, `3`
+conflicts (nothing changed), `4` cancelled (declined, Esc or Ctrl+C at a prompt). Ctrl+C while
+files are being written exits with `130`; the interrupted operation is rolled back automatically
+by the next `install`, `update` or `uninstall`.
 
-## Interactive vs non-interactive
+## Interactive wizard
 
-On a terminal (stdin and stdout are TTYs) and without `--yes`, missing choices are asked:
-client, scope, components. A plan summary is always printed, then confirmed before writing.
-Overwriting a conflicting file needs its own confirmation (default: no).
+On a terminal (stdin and stdout are TTYs) and without `--yes`, `agentforge install` and
+`agentforge uninstall` ask for every choice that was not given as a flag:
+
+| Step              | install                                                                | uninstall                                                 |
+| ----------------- | ---------------------------------------------------------------------- | --------------------------------------------------------- |
+| Environment       | OS, Node.js, directory, Claude Code/Codex detection, existing installs | same                                                      |
+| Client            | Claude Code, Codex or both (detected client highlighted)               | `--provider` to restrict; default: both                   |
+| Scope             | Project or global, with the directories each writes to                 | Project or global                                         |
+| Components        | Agents (purpose and skills shown), then optional standalone skills     | Installed components; skills nobody else needs can go too |
+| Preview + confirm | New, updated, unchanged, kept, conflicts; then "Apply these changes?"  | same                                                      |
+| Apply             | Atomic, progress bar, rollback on failure, summary and next steps      | same                                                      |
+
+Client detection only looks for `claude` and `codex` on `PATH` and for `~/.claude`,
+`CODEX_HOME` or `~/.codex`; nothing is executed. Scopes whose directories are not writable are
+shown as unavailable; AgentForge never asks for elevated privileges.
+
+Keys: up/down (or `k`/`j`, Tab) move, space toggles, `a` selects all or none, `i` inverts,
+enter confirms, Esc or Ctrl+C cancels (nothing is changed). Confirmations take `y`, `n` or enter.
+
+Accessibility and terminals:
+
+- `NO_COLOR=1` (or `TERM=dumb`, or output that is not a terminal) disables colors.
+  `FORCE_COLOR=1` forces them.
+- Every status has a word next to its color and symbol (`OK`, `WARN`, `FAIL`, "installed",
+  "not writable"), so nothing depends on color or glyphs alone.
+- Symbols are Unicode only where the terminal is known to render them (Windows Terminal, VS Code,
+  JetBrains, ConEmu, macOS and Linux terminals); `AGENTFORGE_ASCII=1` forces ASCII.
+- `AGENTFORGE_SIMPLE_PROMPTS=1` replaces the arrow-key prompts with numbered menus (also used
+  automatically when the terminal has no raw mode).
+
+## Non-interactive mode
 
 Anywhere else (CI, pipes) or with `--yes`, nothing is asked: missing choices are usage errors
-and conflicts abort with exit code 3.
+and conflicts abort with exit code 3. Banners, spinners and progress bars are never printed
+without a terminal, and `--json` output contains only JSON.
 
 ```bash
-agentforge install --client both --project --all --yes
-agentforge update --project --yes
-agentforge uninstall sample-skill --client codex --global --dry-run
+agentforge install --provider claude --scope project --all --yes
+agentforge install appsec-auditor --client both --global --yes
+agentforge update --scope project --yes
+agentforge status --json
+agentforge uninstall --scope project --all --dry-run
+agentforge uninstall sample-skill --provider codex --scope global --yes
+```
+
+## Install scripts (from a checkout)
+
+`scripts/install.sh` (Linux, macOS) and `scripts/install.ps1` (Windows PowerShell 5.1 and
+PowerShell 7) check for Node.js 22+ and npm, run `npm ci --ignore-scripts` and `npm run build`
+in the checkout, then run `agentforge install` in the directory you called them from. Arguments
+are passed through, and the installer's exit code is returned. They never use `sudo`, never
+change the execution policy, never request elevation and never download scripts.
+
+```bash
+./scripts/install.sh --provider claude --scope project --all --yes
+```
+
+```powershell
+.\scripts\install.ps1 --provider codex --scope global --all --yes
 ```
 
 ## Development

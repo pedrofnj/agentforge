@@ -17,6 +17,23 @@ npm install --global @pedrofnj/agentforge
 agentforge --version
 ```
 
+Ou compile a partir de um clone do repositório (os scripts verificam Node.js e npm, rodam
+`npm ci` e `npm run build` no checkout e abrem o instalador no seu diretório atual; sem `sudo`,
+sem alterar a política de execução, sem scripts remotos):
+
+```bash
+git clone https://github.com/pedrofnj/agentforge
+cd meu-projeto
+../agentforge/scripts/install.sh            # Linux, macOS
+```
+
+```powershell
+git clone https://github.com/pedrofnj/agentforge
+cd meu-projeto
+..\agentforge\scripts\install.ps1          # Windows; se a política bloquear:
+powershell -NoProfile -ExecutionPolicy Bypass -File ..\agentforge\scripts\install.ps1
+```
+
 Os exemplos abaixo usam `agentforge`; com npx, escreva `npx @pedrofnj/agentforge@latest` no lugar.
 Para trabalhar no próprio AgentForge, veja [CONTRIBUTING.pt-BR.md](../../CONTRIBUTING.pt-BR.md).
 
@@ -24,15 +41,24 @@ Para trabalhar no próprio AgentForge, veja [CONTRIBUTING.pt-BR.md](../../CONTRI
 
 Rode os comandos **a partir do diretório do seu projeto** (o escopo de projeto usa o diretório atual).
 
-| Objetivo                                        | Comando                                                               |
-| ----------------------------------------------- | --------------------------------------------------------------------- |
-| Guiado (pergunta cliente, escopo e componentes) | `agentforge install`                                                  |
-| Claude Code, este projeto, tudo                 | `agentforge install --client claude --project --all --yes`            |
-| Codex, este projeto, tudo                       | `agentforge install --client codex --project --all --yes`             |
-| Os dois clientes, todos os seus projetos        | `agentforge install --client both --global --all --yes`               |
-| Um agente e as Skills de que ele precisa        | `agentforge install appsec-auditor --client claude --project --yes`   |
-| Uma Skill (e o que ela exige)                   | `agentforge install secure-code-review --client codex --global --yes` |
-| Pré-visualizar sem escrever                     | acrescente `--dry-run`                                                |
+| Objetivo                                 | Comando                                                                       |
+| ---------------------------------------- | ----------------------------------------------------------------------------- |
+| Assistente guiado (pergunta tudo)        | `agentforge install`                                                          |
+| Claude Code, este projeto, tudo          | `agentforge install --provider claude --scope project --all --yes`            |
+| Codex, este projeto, tudo                | `agentforge install --provider codex --scope project --all --yes`             |
+| Os dois clientes, todos os seus projetos | `agentforge install --provider both --scope global --all --yes`               |
+| Um agente e as Skills de que ele precisa | `agentforge install appsec-auditor --provider claude --scope project --yes`   |
+| Uma Skill (e o que ela exige)            | `agentforge install secure-code-review --provider codex --scope global --yes` |
+| Pré-visualizar sem escrever              | acrescente `--dry-run`                                                        |
+
+`--provider`/`--scope` são apelidos de `--client` e `--global`/`--project`; as duas formas funcionam.
+
+O assistente mostra o sistema, a versão do Node.js, os clientes detectados (procurados no `PATH`
+e nos diretórios de configuração, sem executá-los) e o que já está instalado. Depois pergunta o
+cliente, o escopo (com os diretórios exatos; os sem permissão de escrita ficam indisponíveis), os
+agentes (com propósito e Skills; as Skills necessárias entram automaticamente) e Skills avulsas
+opcionais, mostra a prévia e pede confirmação antes de gravar. Teclas: setas para mover, espaço
+para selecionar, `a` para todos, Enter para confirmar, Esc ou Ctrl+C para cancelar.
 
 Veja o que existe antes com `agentforge list` (`--type agent`, `--type skill`, `--domain appsec`,
 `--verbose`).
@@ -52,12 +78,14 @@ estado do usuário do sistema operacional (global). Ele nunca edita configuraç�
 ## 3. Verificar
 
 ```bash
+agentforge status            # o que está instalado, versões, integridade, atualizações
 agentforge doctor            # os dois escopos e clientes
 agentforge doctor --project --client codex --verbose
 ```
 
-As linhas `OK`/`WARN`/`FAIL` cobrem Node.js, o catálogo, os diretórios dos clientes, operações
-interrompidas, arquivos ausentes ou modificados e ressalvas de cada cliente (sandbox e projetos
+As linhas `OK`/`WARN`/`FAIL` cobrem Node.js, o catálogo, os diretórios e executáveis dos
+clientes, permissões de escrita, operações interrompidas, arquivos ausentes ou modificados,
+componentes que saíram do catálogo, arquivos de configuração do Claude Code inválidos e ressalvas de cada cliente (sandbox e projetos
 confiáveis no Codex; modos de permissão do Claude Code que sobrescrevem o modo plan).
 
 ## 4. Usar

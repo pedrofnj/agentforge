@@ -4,6 +4,7 @@ import { PLATFORMS, type InstallScope, type Platform } from '../core/types.js';
 import type { InstallEnvironment } from '../installer/state.js';
 import type { Prompter } from './prompt.js';
 import { plainStyle, type Style } from './style.js';
+import type { Terminal } from './tui/terminal.js';
 
 export const styleOf = (ctx: { style?: Style }): Style => ctx.style ?? plainStyle;
 
@@ -27,6 +28,8 @@ export interface CliContext extends InstallEnvironment {
   prompter?: Prompter;
   /** Terminal styling; plain text when absent. */
   style?: Style;
+  /** Live terminal output (spinner, progress); only on an interactive terminal. */
+  terminal?: Terminal;
 }
 
 export interface Options {
@@ -64,8 +67,9 @@ export function promptFor(ctx: CliContext, opts: Options): Prompter | undefined 
   return ctx.interactive && !opts.yes ? ctx.prompter : undefined;
 }
 
-const CLIENTS: Record<string, Platform[]> = {
+export const CLIENTS: Record<string, Platform[]> = {
   claude: ['claude-code'],
+  'claude-code': ['claude-code'],
   codex: ['codex'],
   both: [...PLATFORMS],
 };
@@ -73,18 +77,23 @@ const CLIENTS: Record<string, Platform[]> = {
 export async function resolveClients(
   ctx: CliContext,
   opts: Options,
-  { required }: { required: boolean },
+  { required, ask }: { required: boolean; ask?: (prompter: Prompter) => Promise<Platform[]> },
 ): Promise<Platform[]> {
   if (opts.client !== undefined) {
     const platforms = CLIENTS[opts.client];
     if (!platforms)
-      throw new UsageError(`--client must be one of: ${Object.keys(CLIENTS).join(', ')}`);
+      throw new UsageError(
+        `--client/--provider must be one of: ${Object.keys(CLIENTS).join(', ')}`,
+      );
     return platforms;
   }
   if (!required) return [...PLATFORMS];
   const prompter = promptFor(ctx, opts);
   if (!prompter)
-    throw new UsageError('--client claude|codex|both is required in non-interactive mode');
+    throw new UsageError(
+      '--client claude|codex|both (or --provider) is required in non-interactive mode',
+    );
+  if (ask) return ask(prompter);
   const choice = await prompter.select('Which client do you want to configure?', [
     { value: 'claude', label: 'Claude Code' },
     { value: 'codex', label: 'Codex' },
@@ -93,13 +102,21 @@ export async function resolveClients(
   return CLIENTS[choice]!;
 }
 
-export async function resolveScope(ctx: CliContext, opts: Options): Promise<InstallScope> {
+export async function resolveScope(
+  ctx: CliContext,
+  opts: Options,
+  ask?: (prompter: Prompter) => Promise<InstallScope>,
+): Promise<InstallScope> {
   if (opts.global && opts.project)
     throw new UsageError('Use either --global or --project, not both');
   if (opts.global) return 'global';
   if (opts.project) return 'project';
   const prompter = promptFor(ctx, opts);
-  if (!prompter) throw new UsageError('--global or --project is required in non-interactive mode');
+  if (!prompter)
+    throw new UsageError(
+      '--global or --project (or --scope global|project) is required in non-interactive mode',
+    );
+  if (ask) return ask(prompter);
   return prompter.select('Install globally or in the current project?', [
     { value: 'global', label: `Global (user: ${ctx.homeDir})` },
     { value: 'project', label: `Project (${ctx.cwd})` },

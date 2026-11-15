@@ -5,6 +5,7 @@
 2. Update installed components:
 
 ```bash
+agentforge status                       # which components have an update available
 agentforge update --project --dry-run   # see what would change
 agentforge update --project --yes
 agentforge update --global --client codex --yes
