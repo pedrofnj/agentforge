@@ -7,6 +7,14 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: development
+    ignore:
+      # typescript-eslint 8 supports TypeScript up to 6.x; move to 7 together with a
+      # typescript-eslint release that accepts it.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+      # Types must match the oldest supported Node.js line (engines: >=22).
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
   - package-ecosystem: github-actions
     directory: /
     schedule:
