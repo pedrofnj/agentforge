@@ -45,9 +45,27 @@ already exists, so 0.1.0 was published once from a maintainer workstation (`npm 
 release workflow, which validates everything and skips publishing because the version exists.
 From 0.1.1 on, releases go through the workflow only.
 
-One-time setup (repository owner): create the `npm-release` environment with required
-reviewers; configure npm trusted publishing for this repository and workflow (`release.yml`);
-enable GitHub private vulnerability reporting. No npm token is stored anywhere.
+## Publishing setup
+
+| Where                            | Setting                                                                                                          |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| GitHub environment `npm-release` | Required reviewer: the maintainer; deployments only from tags `v*`                                               |
+| npm trusted publisher            | GitHub Actions, `pedrofnj/agentforge`, workflow `release.yml`, environment `npm-release`; allowed: `npm publish` |
+| npm publishing access            | Require two-factor authentication and disallow bypass-2FA tokens                                                 |
+| npm account                      | Two-factor authentication for authorization and writes                                                           |
+| GitHub                           | Private vulnerability reporting enabled                                                                          |
+
+No npm token exists in the repository, in GitHub secrets or on CI. The publish job authenticates
+with OIDC (npm 11.5.1 or newer is required, so the workflow installs npm 11 before publishing)
+and npm adds provenance automatically.
+
+A new trusted publisher stays "pending validation" until the workflow publishes once. If a
+configuration expires before that, add it again with the same values.
+
+Staged publishing: npm recommends letting the trusted publisher only stage versions
+(`npm stage publish`) so each release is promoted with 2FA. The workflow uses `npm publish`
+because the npm CLI used for this project does not provide `npm stage` yet; the GitHub
+environment approval is the human gate. Revisit when `npm stage` is available.
 
 ## Rollback
 

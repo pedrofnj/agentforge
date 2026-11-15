@@ -6,6 +6,20 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-15
+
+First release published by the release workflow through npm trusted publishing (OIDC, with
+provenance), with no npm token anywhere.
+
+### Changed
+
+- Release workflow installs npm 11 before publishing, as required for trusted publishing.
+
+### Documentation
+
+- `docs/releasing.md` documents the publishing setup (environment approval, trusted publisher,
+  2FA-only publishing access) and the staged-publishing decision.
+
 ## [0.1.0] - 2026-11-15
 
 First public release, published as `@pedrofnj/agentforge` (command: `agentforge`).
