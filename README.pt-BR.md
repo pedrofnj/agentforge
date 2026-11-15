@@ -10,7 +10,7 @@
 <p align="center">
   <a href="https://github.com/pedrofnj/agentforge/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/pedrofnj/agentforge/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="Licença: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-  <img alt="Node.js >= 22" src="https://img.shields.io/badge/node-%3E%3D22-339933.svg">
+  <img alt="Node.js 22 ou mais recente" src="https://img.shields.io/badge/node-%3E%3D22-339933.svg">
   <img alt="Clientes: Claude Code e Codex" src="https://img.shields.io/badge/clients-Claude%20Code%20%7C%20Codex-6b7c93.svg">
   <img alt="Dependências de runtime: 0" src="https://img.shields.io/badge/runtime%20dependencies-0-brightgreen.svg">
 </p>

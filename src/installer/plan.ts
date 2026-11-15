@@ -46,6 +46,8 @@ export interface FileAction {
   root: string;
   absPath: string;
   content?: string;
+  /** Hash of the file when planned; apply refuses to touch it if it changed since. */
+  expectedSha?: string;
   note?: string;
 }
 
@@ -160,12 +162,17 @@ export async function planComponent(input: ComponentPlanInput): Promise<{
     } else if (status.sha256 === hash) {
       actions.push({ ...action, kind: rec ? 'unchanged' : 'adopt' });
     } else if (rec && rec.sha256 === status.sha256) {
-      actions.push({ ...action, kind: 'update' });
+      actions.push({ ...action, kind: 'update', expectedSha: status.sha256 });
     } else if (rec && onModified === 'keep') {
       actions.push({ ...action, kind: 'keep-modified', note: 'local changes preserved' });
       sha = rec.sha256;
     } else if (opts.overwrite) {
-      actions.push({ ...action, kind: 'overwrite', note: 'original preserved in state dir' });
+      actions.push({
+        ...action,
+        kind: 'overwrite',
+        expectedSha: status.sha256,
+        note: 'original preserved in state dir',
+      });
     } else {
       conflicts.push({
         ...base,
@@ -218,7 +225,7 @@ export async function planRemoval(
   };
   if (status.kind === 'missing') return [{ ...action, kind: 'forget', note: 'already absent' }];
   if (status.kind === 'file' && status.sha256 === rec.sha256)
-    return [{ ...action, kind: 'remove' }];
+    return [{ ...action, kind: 'remove', expectedSha: rec.sha256 }];
   return [
     {
       ...action,

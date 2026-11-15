@@ -1,6 +1,7 @@
+import { realpathSync } from 'node:fs';
 import path from 'node:path';
 import { ADAPTERS } from '../../adapters/index.js';
-import type { InstallScope, Platform } from '../../core/types.js';
+import { PLATFORMS, type InstallScope, type Platform } from '../../core/types.js';
 import { applyPlan, readJournal, recover } from '../../installer/apply.js';
 import {
   hasChanges,
@@ -11,7 +12,7 @@ import {
   type Plan,
   type PlanOptions,
 } from '../../installer/plan.js';
-import { readState, stateDirFor } from '../../installer/state.js';
+import { locationDir, readState, stateDirFor } from '../../installer/state.js';
 import { discoverCatalog, type Catalog } from '../../registry/index.js';
 import { planUpdate } from '../../updater/index.js';
 import {
@@ -28,10 +29,25 @@ import {
 import { formatPlan } from '../format.js';
 
 function samePath(a: string, b: string, platform: NodeJS.Platform): boolean {
-  const norm = (p: string) => path.resolve(p).replace(/[\\/]+$/, '');
+  // Resolve links first: on macOS the temp and home paths can differ only by /var -> /private/var.
+  const real = (p: string) => {
+    try {
+      return realpathSync.native(p);
+    } catch {
+      return path.resolve(p);
+    }
+  };
+  const norm = (p: string) => real(p).replace(/[\\/]+$/, '');
   return platform === 'win32' || platform === 'darwin'
     ? norm(a).toLowerCase() === norm(b).toLowerCase()
     : norm(a) === norm(b);
+}
+
+/** Every client location dir for a scope: the only places a journal may point to. */
+function trustedRoots(scope: InstallScope, ctx: CliContext): string[] {
+  return PLATFORMS.flatMap((p) =>
+    (['skills', 'agents'] as const).map((loc) => locationDir(p, loc, scope, ctx)),
+  );
 }
 
 async function loadCatalog(root: string): Promise<Catalog> {
@@ -137,7 +153,7 @@ export async function runOperation(
     if (await readJournal(stateDir)) {
       ctx.err('Warning: an interrupted operation is pending; the next real run will roll it back.');
     }
-  } else if (await recover(stateDir)) {
+  } else if (await recover(stateDir, trustedRoots(scope, ctx))) {
     ctx.out('Rolled back an interrupted operation.');
   }
 

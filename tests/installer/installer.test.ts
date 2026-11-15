@@ -4,7 +4,7 @@ import path from 'node:path';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { applyPlan, readJournal, recover } from '../../src/installer/apply.js';
 import { planInstall } from '../../src/installer/plan.js';
-import { readState, stateDirFor } from '../../src/installer/state.js';
+import { locationDir, readState, stateDirFor } from '../../src/installer/state.js';
 import { discoverCatalog } from '../../src/registry/index.js';
 import { planUpdate } from '../../src/updater/index.js';
 import {
@@ -449,7 +449,10 @@ describe('interrupted operations', () => {
         beforeStep: () => Promise.reject(new Error('killed')),
       }),
     ).rejects.toThrow();
-    expect(await recover(stateDir)).toBe(true);
+    const roots = (['skills', 'agents'] as const).map((l) =>
+      locationDir('claude-code', l, 'project', sbx.ctx()),
+    );
+    expect(await recover(stateDir, roots)).toBe(true);
     expect(await snapshot(sbx.project)).toEqual(before);
   });
 
@@ -462,7 +465,8 @@ describe('interrupted operations', () => {
         pid: process.ppid,
         status: 'applying',
         steps: [],
-        txDir: path.join(stateDir, 'b'),
+        txDir: path.join(stateDir, 'backups', 'b'),
+        previousState: null,
       }),
     );
     const r = await installAll('--project');
