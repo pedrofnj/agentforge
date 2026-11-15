@@ -27,9 +27,8 @@ formato nativo de cada cliente. Eles funcionam em qualquer stack, só carregam d
 tarefa precisa e são somente leitura por padrão. Um único CLI instala, atualiza, verifica e
 remove tudo com segurança.
 
-> **Status: pré-lançamento (0.1.0).** O CLI e o catálogo estão completos e testados; o pacote
-> **ainda não está no npm** (veja [Limitações conhecidas](#limitações-conhecidas)). Até lá,
-> instale a partir de um pacote local, como mostrado abaixo.
+> **Status: 0.1.0, primeira versão pública.** A eficácia dos agentes ainda não foi medida com
+> sessões reais dos clientes; veja [Limitações conhecidas](#limitações-conhecidas).
 
 ## Por que usar o AgentForge
 
@@ -61,32 +60,23 @@ Detalhes: [docs/platform-compatibility.md](docs/platform-compatibility.md) (em i
 
 ## Início rápido
 
-> **Com a primeira publicação no npm (ainda não publicado):**
->
-> ```bash
-> npx @pedrofnj/agentforge@latest install
-> ```
->
-> Este comando vai funcionar quando a versão 0.1.0 estiver no npm. Até lá, use os passos abaixo.
-
-**Hoje (a partir do código).** Requer Node.js 22 ou mais recente:
+No seu projeto, com Node.js 22 ou mais recente:
 
 ```bash
-git clone https://github.com/pedrofnj/agentforge.git
-cd agentforge
-npm ci && npm run build && npm pack
-npm install --global ./pedrofnj-agentforge-0.1.0.tgz
+npx @pedrofnj/agentforge@latest install
 ```
 
-Depois, **no seu projeto**:
+O instalador pergunta qual cliente (Claude Code, Codex ou ambos), onde (neste projeto ou
+globalmente) e quais agentes e Skills, mostra o plano e pede confirmação antes de escrever
+qualquer coisa. Depois, verifique:
 
 ```bash
-agentforge install     # pergunta: Claude Code, Codex ou ambos; este projeto ou global; quais agentes e Skills
-agentforge doctor      # verifica a instalação
+npx @pedrofnj/agentforge@latest doctor
 ```
 
-O instalador mostra o plano e pede confirmação antes de escrever qualquer coisa. O comando é
-sempre `agentforge`, seja qual for a forma de instalação.
+Prefere um comando permanente? `npm install --global @pedrofnj/agentforge` e use `agentforge`
+em qualquer lugar (`agentforge install`, `agentforge doctor`). O instalador não precisa de chave
+de API nem de conta; ele só grava arquivos para os clientes que você já usa.
 
 ## Exemplos de uso
 
@@ -203,8 +193,6 @@ Guias (em inglês): [atualização](docs/guides/updating.md) · [desinstalação
 
 ## Limitações conhecidas
 
-- **Ainda não publicado no npm.** O pacote será `@pedrofnj/agentforge` (o comando é
-  `agentforge`).
 - **Eficácia ainda não medida.** Existem benchmarks com ground truth que rodam offline, mas nenhuma
   sessão real do Claude Code ou do Codex foi avaliada. Testes estruturais não provam que as
   auditorias encontram tudo. Nenhuma auditoria garante a ausência de vulnerabilidades.

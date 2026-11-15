@@ -26,9 +26,8 @@ infrastructure) and six reusable skills into **Claude Code** and **Codex**, in e
 native format. They work on any stack, load detail only when a task needs it, and stay read-only
 by default. One CLI installs, updates, checks and removes them safely.
 
-> **Status: pre-release (0.1.0).** The CLI and the catalog are complete and tested; the package is
-> **not on npm yet** (see [Known limitations](#known-limitations)). Until then, install from a
-> local package as shown below.
+> **Status: 0.1.0, first public release.** Agent effectiveness has not been measured with real
+> client sessions yet; see [Known limitations](#known-limitations).
 
 ## Why AgentForge
 
@@ -58,32 +57,22 @@ Details: [docs/platform-compatibility.md](docs/platform-compatibility.md).
 
 ## Quick start
 
-> **Coming with the first npm release (not published yet):**
->
-> ```bash
-> npx @pedrofnj/agentforge@latest install
-> ```
->
-> This command will work once version 0.1.0 is on npm. Until then, use the steps below.
-
-**Today (from source).** Requires Node.js 22 or newer:
+In your project, with Node.js 22 or newer:
 
 ```bash
-git clone https://github.com/pedrofnj/agentforge.git
-cd agentforge
-npm ci && npm run build && npm pack
-npm install --global ./pedrofnj-agentforge-0.1.0.tgz
+npx @pedrofnj/agentforge@latest install
 ```
 
-Then, **in your project**:
+The installer asks which client (Claude Code, Codex or both), where (this project or globally)
+and which agents and skills, shows the plan, and asks before writing anything. Then check it:
 
 ```bash
-agentforge install     # asks: Claude Code, Codex or both; this project or global; which agents and skills
-agentforge doctor      # checks the installation
+npx @pedrofnj/agentforge@latest doctor
 ```
 
-The installer shows the plan and asks before writing anything. The command is always
-`agentforge`, whichever way you installed it.
+Prefer a permanent command? `npm install --global @pedrofnj/agentforge`, then use `agentforge`
+everywhere (`agentforge install`, `agentforge doctor`). No API key or account is needed for the
+installer; it only writes files for the clients you already use.
 
 ## Usage examples
 
@@ -195,8 +184,6 @@ Guides: [updating](docs/guides/updating.md) · [uninstalling](docs/guides/uninst
 
 ## Known limitations
 
-- **Not published to npm yet.** The package will be `@pedrofnj/agentforge` (the command is
-  `agentforge`).
 - **Effectiveness not measured yet.** Benchmarks with ground truth exist and run offline, but no
   real Claude Code or Codex session has been evaluated. Structural tests do not prove that
   audits find everything. No audit guarantees the absence of vulnerabilities.
