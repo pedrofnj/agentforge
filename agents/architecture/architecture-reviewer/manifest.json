@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "agent",
+  "id": "architecture-reviewer",
+  "name": "Architecture reviewer",
+  "version": "0.3.0",
+  "description": "Read-only architecture reviewer for any stack: boundaries, coupling, dependencies, scalability, resilience and unnecessary complexity, with proportional recommendations. Use for design and structure reviews.",
+  "targets": ["claude-code", "codex"],
+  "domain": "architecture",
+  "mode": "read-only",
+  "capabilities": ["read"],
+  "skills": ["repository-discovery", "evidence-reporting"],
+  "preloadSkills": ["evidence-reporting"],
+  "budget": {
+    "maxDepth": 3,
+    "maxSubagents": 0
+  }
+}

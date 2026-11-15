@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "agent",
+  "id": "performance-auditor",
+  "name": "Performance auditor",
+  "version": "0.3.0",
+  "description": "Read-only performance auditor for any stack: algorithmic cost, inefficient queries, repeated work, memory, I/O, concurrency and caching, separating measured bottlenecks from hypotheses. Use when something is slow or resource-heavy.",
+  "targets": ["claude-code", "codex"],
+  "domain": "performance",
+  "mode": "read-only",
+  "capabilities": ["read"],
+  "skills": ["repository-discovery", "evidence-reporting"],
+  "preloadSkills": ["evidence-reporting"],
+  "budget": {
+    "maxDepth": 3,
+    "maxSubagents": 0
+  }
+}

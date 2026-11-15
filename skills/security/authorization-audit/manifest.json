@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "kind": "skill",
+  "id": "authorization-audit",
+  "name": "Authorization audit",
+  "version": "0.2.0",
+  "description": "Audit authorization in any stack: access checks, roles and privileges, object ownership (IDOR), tenant isolation and privilege escalation. Use when asked who can access what, or when a review reaches access-control code.",
+  "targets": ["claude-code", "codex"],
+  "domain": "appsec",
+  "capabilities": ["read"],
+  "requires": ["repository-discovery", "evidence-reporting"],
+  "references": [
+    {
+      "path": "references/object-level-access.md",
+      "description": "Object ownership and tenant isolation checks (IDOR)."
+    },
+    {
+      "path": "references/privilege-escalation.md",
+      "description": "Role checks, admin paths, mass assignment and trust in client-supplied roles."
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+name: Release
+
+# Publishes to npm only when a maintainer pushes a version tag (vX.Y.Z) and a
+# reviewer approves the protected "npm-release" environment. Pushes to the main
+# branch never publish. Authentication uses npm trusted publishing (OIDC): no
+# npm token is stored in the repository or in secrets. See docs/releasing.md.
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Tag matches package.json version and has a changelog entry
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          test "v${version}" = "${GITHUB_REF_NAME}" || { echo "Tag ${GITHUB_REF_NAME} != v${version}"; exit 1; }
+          grep -q "^## \[${version}\]" CHANGELOG.md || { echo "CHANGELOG.md has no [${version}] entry"; exit 1; }
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm run build
+      - run: node dist/cli/bin.js eval validate
+
+  package:
+    needs: verify
+    uses: ./.github/workflows/package-validation.yml
+
+  publish:
+    needs: [verify, package]
+    runs-on: ubuntu-latest
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - name: Publish with provenance (trusted publishing)
+        run: npm publish --provenance --access public

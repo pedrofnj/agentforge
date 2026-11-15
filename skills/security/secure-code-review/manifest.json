@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "kind": "skill",
+  "id": "secure-code-review",
+  "name": "Secure code review",
+  "version": "0.3.0",
+  "description": "Evidence-based security review of code or a diff in any language: injection, unsafe data handling, exposed secrets, risky configuration, prioritizing reachable attack surface. Use when asked to review code, a change or a repository for security.",
+  "targets": ["claude-code", "codex"],
+  "domain": "appsec",
+  "capabilities": ["read"],
+  "requires": ["repository-discovery", "evidence-reporting"],
+  "references": [
+    {
+      "path": "references/vulnerability-classes.md",
+      "description": "What to look for, how to confirm and common false positives per vulnerability class."
+    },
+    {
+      "path": "references/configuration-review.md",
+      "description": "Insecure defaults in config, deployment and container files."
+    },
+    {
+      "path": "references/api-and-supply-chain.md",
+      "description": "API exposure, external integrations, dependencies and supply-chain risks."
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "kind": "skill",
+  "id": "evidence-reporting",
+  "name": "Evidence reporting",
+  "version": "0.2.0",
+  "description": "Format technical findings as concise, verifiable reports with severity, location, evidence, impact, confidence and recommendation. Use whenever a review or audit reports findings.",
+  "targets": ["claude-code", "codex"],
+  "domain": "workflow",
+  "capabilities": ["read"],
+  "references": [
+    {
+      "path": "references/severity.md",
+      "description": "Severity rubric with factors and edge cases; read when a rating is unclear."
+    }
+  ]
+}

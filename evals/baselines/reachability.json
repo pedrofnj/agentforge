@@ -1,0 +1,8 @@
+{
+  "note": "Accepted static search reachability after Phase 5 (no model runs).",
+  "casesDigest": "725e4b6bf7f7e554367cb2712b0bacda25456de136e252bd3a6e55943fbcf4b6",
+  "reached": 50,
+  "total": 50,
+  "meanReachableShare": 0.769,
+  "misses": []
+}

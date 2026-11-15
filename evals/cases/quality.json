@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "qual-swallowed-error-ts",
+      "category": "quality",
+      "subcategory": "error-handling",
+      "kind": "vulnerable",
+      "description": "Errors in background sync are discarded.",
+      "fixture": "typescript-api",
+      "agent": "code-quality-reviewer",
+      "files": ["src/jobs/sync.ts"],
+      "expected": {
+        "issue": "error swallowed silently",
+        "evidence": [
+          {
+            "file": "src/jobs/sync.ts",
+            "contains": "catch (e) {}"
+          }
+        ],
+        "severity": "medium",
+        "keywords": ["swallow", "catch", "ignored", "error handling", "silent"]
+      },
+      "acceptance": [
+        "A finding located in src/jobs/sync.ts within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "qual-off-by-one-go",
+      "category": "quality",
+      "subcategory": "logic-defect",
+      "kind": "vulnerable",
+      "description": "Loop bound allows index == len(users).",
+      "fixture": "go-service",
+      "agent": "code-quality-reviewer",
+      "files": ["internal/web/paging.go"],
+      "expected": {
+        "issue": "off-by-one causes index out of range",
+        "evidence": [
+          {
+            "file": "internal/web/paging.go",
+            "contains": "i <= limit && i <= len(users)"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["off-by-one", "out of range", "bound", "index", "panic"]
+      },
+      "acceptance": [
+        "A finding located in internal/web/paging.go within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "qual-race-go",
+      "category": "quality",
+      "subcategory": "race-condition",
+      "kind": "vulnerable",
+      "description": "Map written without the mutex used for reads.",
+      "fixture": "go-service",
+      "agent": "code-quality-reviewer",
+      "files": ["internal/web/counter.go"],
+      "expected": {
+        "issue": "concurrent map write without synchronization",
+        "evidence": [
+          {
+            "file": "internal/web/counter.go",
+            "contains": "visits[path]++"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["race", "mutex", "lock", "concurren", "synchroniz"]
+      },
+      "acceptance": [
+        "A finding located in internal/web/counter.go within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "qual-duplication-php",
+      "category": "quality",
+      "subcategory": "harmful-duplication",
+      "kind": "vulnerable",
+      "description": "Two email validators diverged; signup accepts anything with @.",
+      "fixture": "php-app",
+      "agent": "code-quality-reviewer",
+      "files": ["src/Validation.php"],
+      "expected": {
+        "issue": "duplicated validation that has diverged",
+        "evidence": [
+          {
+            "file": "src/Validation.php",
+            "contains": "preg_match('/@/', $email)"
+          }
+        ],
+        "severity": "medium",
+        "keywords": ["duplicat", "inconsisten", "diverg", "validation"]
+      },
+      "acceptance": [
+        "A finding located in src/Validation.php within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "qual-useless-test-py",
+      "category": "quality",
+      "subcategory": "insufficient-tests",
+      "kind": "vulnerable",
+      "description": "Test exercises code but asserts nothing.",
+      "fixture": "python-service",
+      "agent": "code-quality-reviewer",
+      "files": ["tests/test_orders.py"],
+      "expected": {
+        "issue": "test cannot fail",
+        "evidence": [
+          {
+            "file": "tests/test_orders.py",
+            "contains": "assert True"
+          }
+        ],
+        "severity": "low",
+        "keywords": ["test", "assert", "coverage"]
+      },
+      "acceptance": [
+        "A finding located in tests/test_orders.py within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "qual-safe-health-go",
+      "category": "quality",
+      "subcategory": "error-handling",
+      "kind": "safe",
+      "description": "Trivial, correct health handler.",
+      "fixture": "go-service",
+      "agent": "code-quality-reviewer",
+      "files": ["internal/web/health.go"],
+      "keywords": ["error", "race", "defect", "bug"],
+      "acceptance": [
+        "No confirmed or likely finding about error-handling in internal/web/health.go"
+      ],
+      "falsePositive": ["Reporting defects in internal/web/health.go"],
+      "limitations": []
+    }
+  ]
+}

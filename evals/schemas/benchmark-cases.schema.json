@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentforge.local/schemas/benchmark-cases.schema.json",
+  "title": "AgentForge benchmark case file",
+  "description": "Documentation of the format checked by src/evaluation/core/cases.ts (the TypeScript validator is authoritative and also resolves evidence against fixture files).",
+  "type": "object",
+  "required": ["schemaVersion", "cases"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "cases": { "type": "array", "items": { "$ref": "#/$defs/case" } }
+  },
+  "$defs": {
+    "nonEmpty": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+    "case": {
+      "type": "object",
+      "required": [
+        "id",
+        "category",
+        "subcategory",
+        "kind",
+        "description",
+        "fixture",
+        "agent",
+        "files",
+        "acceptance",
+        "falsePositive",
+        "limitations"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "category": {
+          "enum": ["security", "architecture", "quality", "performance", "infrastructure"]
+        },
+        "subcategory": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["vulnerable", "safe"] },
+        "description": { "type": "string", "minLength": 1 },
+        "fixture": { "type": "string", "description": "Directory under evals/fixtures." },
+        "agent": { "type": "string" },
+        "skill": { "type": "string" },
+        "references": { "$ref": "#/$defs/nonEmpty" },
+        "files": { "$ref": "#/$defs/nonEmpty" },
+        "keywords": {
+          "$ref": "#/$defs/nonEmpty",
+          "description": "Safe cases: words that make a finding in files a false positive."
+        },
+        "expected": {
+          "type": "object",
+          "required": ["issue", "evidence", "severity", "keywords"],
+          "properties": {
+            "issue": { "type": "string", "minLength": 1 },
+            "evidence": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["file", "contains"],
+                "properties": {
+                  "file": { "type": "string" },
+                  "contains": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Must occur on exactly one line of file."
+                  }
+                }
+              }
+            },
+            "severity": { "enum": ["critical", "high", "medium", "low", "info"] },
+            "cwe": { "type": "string", "pattern": "^CWE-[0-9]+$" },
+            "keywords": { "$ref": "#/$defs/nonEmpty" }
+          }
+        },
+        "acceptance": { "$ref": "#/$defs/nonEmpty" },
+        "falsePositive": { "$ref": "#/$defs/nonEmpty" },
+        "limitations": { "type": "array", "items": { "type": "string" } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "vulnerable" } } },
+          "then": { "required": ["expected"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "safe" } } },
+          "then": { "required": ["keywords"], "not": { "required": ["expected"] } }
+        }
+      ]
+    }
+  }
+}

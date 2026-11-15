@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "perf-quadratic-ts",
+      "category": "performance",
+      "subcategory": "algorithmic-complexity",
+      "kind": "vulnerable",
+      "description": "includes() inside a loop makes deduplication quadratic.",
+      "fixture": "typescript-api",
+      "agent": "performance-auditor",
+      "files": ["src/utils/dedupe.ts"],
+      "expected": {
+        "issue": "quadratic deduplication",
+        "evidence": [
+          {
+            "file": "src/utils/dedupe.ts",
+            "contains": "result.includes(email.toLowerCase())"
+          }
+        ],
+        "severity": "low",
+        "keywords": ["quadratic", "o(n", "complexity", "includes", "set"]
+      },
+      "acceptance": [
+        "A finding located in src/utils/dedupe.ts within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "perf-repeated-regex-go",
+      "category": "performance",
+      "subcategory": "repeated-work",
+      "kind": "vulnerable",
+      "description": "Regex compiled on every iteration.",
+      "fixture": "go-service",
+      "agent": "performance-auditor",
+      "files": ["internal/web/validate.go"],
+      "expected": {
+        "issue": "regular expression recompiled inside a loop",
+        "evidence": [
+          {
+            "file": "internal/web/validate.go",
+            "contains": "regexp.MustCompile"
+          }
+        ],
+        "severity": "low",
+        "keywords": ["regex", "compile", "loop", "repeated"]
+      },
+      "acceptance": [
+        "A finding located in internal/web/validate.go within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "perf-n-plus-one-py",
+      "category": "performance",
+      "subcategory": "inefficient-queries",
+      "kind": "vulnerable",
+      "description": "One query per customer inside a loop.",
+      "fixture": "python-service",
+      "agent": "performance-auditor",
+      "files": ["app/reports.py"],
+      "expected": {
+        "issue": "N+1 queries",
+        "evidence": [
+          {
+            "file": "app/reports.py",
+            "contains": "db.query("
+          }
+        ],
+        "severity": "medium",
+        "keywords": ["n+1", "query", "loop", "batch"]
+      },
+      "acceptance": [
+        "A finding located in app/reports.py within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "perf-memory-rust",
+      "category": "performance",
+      "subcategory": "memory-usage",
+      "kind": "vulnerable",
+      "description": "Whole log read into memory and copied into a vector to count lines.",
+      "fixture": "rust-cli",
+      "agent": "performance-auditor",
+      "files": ["src/logs.rs"],
+      "expected": {
+        "issue": "whole file loaded into memory instead of streaming",
+        "evidence": [
+          {
+            "file": "src/logs.rs",
+            "contains": "fs::read_to_string(path)"
+          }
+        ],
+        "severity": "low",
+        "keywords": ["memory", "stream", "whole file", "buffer"]
+      },
+      "acceptance": [
+        "A finding located in src/logs.rs within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "perf-safe-hash-ts",
+      "category": "performance",
+      "subcategory": "algorithmic-complexity",
+      "kind": "safe",
+      "description": "Single-pass hashing helpers.",
+      "fixture": "typescript-api",
+      "agent": "performance-auditor",
+      "files": ["src/auth/hash.ts"],
+      "keywords": ["complexity", "quadratic", "loop", "memory"],
+      "acceptance": [
+        "No confirmed or likely finding about algorithmic-complexity in src/auth/hash.ts"
+      ],
+      "falsePositive": ["Reporting performance problems in src/auth/hash.ts"],
+      "limitations": []
+    }
+  ]
+}

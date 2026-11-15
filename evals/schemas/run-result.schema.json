@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentforge.local/schemas/run-result.schema.json",
+  "title": "AgentForge run result",
+  "description": "One agent run on one fixture, as produced by `agentforge eval import` or written by hand (--from manual). Checked by src/evaluation/core/run.ts. Never contains transcripts, commands or credentials.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "runId",
+    "source",
+    "client",
+    "agent",
+    "fixture",
+    "findings",
+    "usage",
+    "execution"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "runId": { "type": "string", "minLength": 1 },
+    "source": { "enum": ["manual", "claude-code-json", "codex-exec-jsonl", "report-markdown"] },
+    "client": { "enum": ["claude-code", "codex", "unknown"] },
+    "agentforgeVersion": { "type": "string" },
+    "agent": { "type": "string" },
+    "profile": { "enum": ["quick", "standard", "deep"] },
+    "budget": { "enum": ["economy", "balanced", "thorough"] },
+    "fixture": { "type": "string" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "category": { "type": "string" },
+          "cwe": { "type": "string" },
+          "severity": { "enum": ["critical", "high", "medium", "low", "info"] },
+          "status": { "enum": ["confirmed", "likely", "needs-investigation"] },
+          "location": {
+            "type": "object",
+            "required": ["file"],
+            "properties": {
+              "file": { "type": "string" },
+              "startLine": { "type": "integer", "minimum": 1 },
+              "endLine": { "type": "integer", "minimum": 1 }
+            }
+          },
+          "evidence": { "type": "string" }
+        }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "required": [
+        "provider",
+        "inputTokens",
+        "outputTokens",
+        "cacheReadTokens",
+        "cacheWriteTokens",
+        "reasoningTokens",
+        "totalTokens",
+        "costUsd",
+        "model"
+      ],
+      "properties": {
+        "provider": { "enum": ["anthropic", "openai", "unknown"] }
+      },
+      "additionalProperties": { "$ref": "#/$defs/metric" }
+    },
+    "execution": {
+      "type": "object",
+      "required": ["toolCalls", "delegations", "filesRead", "repeatedReads", "durationMs", "turns"],
+      "additionalProperties": { "$ref": "#/$defs/metric" }
+    },
+    "notes": { "type": "array", "items": { "type": "string" } }
+  },
+  "$defs": {
+    "metric": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["measured", "estimated", "unavailable"] },
+        "value": { "type": ["number", "string"] },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

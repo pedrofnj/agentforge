@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "kind": "agent",
+  "id": "sample-reviewer",
+  "version": "1.0.0",
+  "description": "Fixture read-only reviewer used by tests.",
+  "targets": ["claude-code", "codex"],
+  "domain": "quality",
+  "mode": "read-only",
+  "capabilities": ["read"],
+  "model": "balanced",
+  "skills": ["sample-skill"]
+}

@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "infra-privileged",
+      "category": "infrastructure",
+      "subcategory": "insecure-configuration",
+      "kind": "vulnerable",
+      "description": "Container runs privileged.",
+      "fixture": "infra-config",
+      "agent": "infrastructure-reviewer",
+      "files": ["deploy/service.yaml"],
+      "expected": {
+        "issue": "privileged container",
+        "evidence": [
+          {
+            "file": "deploy/service.yaml",
+            "contains": "privileged: true"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["privileged", "privilege"]
+      },
+      "acceptance": [
+        "A finding located in deploy/service.yaml within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "infra-root-image",
+      "category": "infrastructure",
+      "subcategory": "insecure-configuration",
+      "kind": "vulnerable",
+      "description": "Mutable base tag, root user, secret as build argument.",
+      "fixture": "infra-config",
+      "agent": "infrastructure-reviewer",
+      "files": ["Dockerfile"],
+      "expected": {
+        "issue": "mutable image tag and root user in container build",
+        "evidence": [
+          {
+            "file": "Dockerfile",
+            "contains": "FROM base-image:latest"
+          }
+        ],
+        "severity": "medium",
+        "keywords": ["latest", "root", "tag", "pin", "user"]
+      },
+      "acceptance": [
+        "A finding located in Dockerfile within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "infra-unpinned-step",
+      "category": "infrastructure",
+      "subcategory": "insecure-configuration",
+      "kind": "vulnerable",
+      "description": "Third-party CI step on a mutable ref with a deploy token.",
+      "fixture": "infra-config",
+      "agent": "infrastructure-reviewer",
+      "files": ["ci/pipeline.yml"],
+      "expected": {
+        "issue": "unpinned third-party CI step with access to secrets",
+        "evidence": [
+          {
+            "file": "ci/pipeline.yml",
+            "contains": "@main"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["pin", "mutable", "third-party", "supply chain", "unpinned"]
+      },
+      "acceptance": [
+        "A finding located in ci/pipeline.yml within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "infra-wildcard-iam",
+      "category": "infrastructure",
+      "subcategory": "excessive-permissions",
+      "kind": "vulnerable",
+      "description": "Policy grants every action on every resource.",
+      "fixture": "infra-config",
+      "agent": "infrastructure-reviewer",
+      "files": ["iam/policy.json"],
+      "expected": {
+        "issue": "wildcard permissions",
+        "evidence": [
+          {
+            "file": "iam/policy.json",
+            "contains": "\"Action\": \"*\""
+          }
+        ],
+        "severity": "high",
+        "keywords": ["wildcard", "least privilege", "permission", "*"]
+      },
+      "acceptance": [
+        "A finding located in iam/policy.json within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "infra-secret-configmap",
+      "category": "infrastructure",
+      "subcategory": "secret-exposure",
+      "kind": "vulnerable",
+      "description": "Database password in a plain config map.",
+      "fixture": "infra-config",
+      "agent": "infrastructure-reviewer",
+      "files": ["deploy/configmap.yaml"],
+      "expected": {
+        "issue": "secret stored in plain configuration",
+        "evidence": [
+          {
+            "file": "deploy/configmap.yaml",
+            "contains": "DB_PASSWORD:"
+          }
+        ],
+        "severity": "medium",
+        "keywords": ["secret", "password", "plain"]
+      },
+      "acceptance": [
+        "A finding located in deploy/configmap.yaml within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "infra-host-isolation",
+      "category": "infrastructure",
+      "subcategory": "isolation",
+      "kind": "vulnerable",
+      "description": "Host network and host root filesystem mounted.",
+      "fixture": "infra-config",
+      "agent": "infrastructure-reviewer",
+      "files": ["deploy/agent.yaml"],
+      "expected": {
+        "issue": "workload breaks host isolation (host network and host root mount)",
+        "evidence": [
+          {
+            "file": "deploy/agent.yaml",
+            "contains": "hostNetwork: true"
+          }
+        ],
+        "severity": "high",
+        "keywords": ["host", "isolation", "hostpath", "hostnetwork"]
+      },
+      "acceptance": [
+        "A finding located in deploy/agent.yaml within 5 lines of the evidence",
+        "Title, category or CWE names the issue (one of the keywords)",
+        "Status confirmed or likely"
+      ],
+      "falsePositive": ["Findings elsewhere that do not correspond to a real issue"],
+      "limitations": []
+    },
+    {
+      "id": "infra-safe-worker",
+      "category": "infrastructure",
+      "subcategory": "insecure-configuration",
+      "kind": "safe",
+      "description": "Hardened deployment pinned by digest.",
+      "fixture": "infra-config",
+      "agent": "infrastructure-reviewer",
+      "files": ["deploy/worker.yaml"],
+      "keywords": ["privileged", "root", "latest", "limit", "pin"],
+      "acceptance": [
+        "No confirmed or likely finding about insecure-configuration in deploy/worker.yaml"
+      ],
+      "falsePositive": ["Reporting privilege, root, tag or limits issues in deploy/worker.yaml"],
+      "limitations": []
+    }
+  ]
+}

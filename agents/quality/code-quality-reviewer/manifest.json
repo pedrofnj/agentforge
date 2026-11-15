@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "kind": "agent",
+  "id": "code-quality-reviewer",
+  "name": "Code quality reviewer",
+  "version": "0.3.0",
+  "description": "Read-only code quality reviewer for any language: probable defects, error handling, race conditions, risky duplication, inconsistencies and test gaps, prioritized by risk. Use for code reviews focused on correctness and maintainability.",
+  "targets": ["claude-code", "codex"],
+  "domain": "quality",
+  "mode": "read-only",
+  "capabilities": ["read"],
+  "skills": ["repository-discovery", "secure-code-review", "evidence-reporting"],
+  "preloadSkills": ["evidence-reporting"],
+  "budget": {
+    "maxDepth": 3,
+    "maxSubagents": 0
+  }
+}
