@@ -41,9 +41,11 @@ const clean = (s) =>
 const steps = [
   ['--version'],
   ['list', '--type', 'agent'],
-  ['install', 'appsec-auditor', '--client', 'claude', '--project', '--dry-run'],
-  ['install', 'appsec-auditor', '--client', 'claude', '--project', '--yes'],
-  ['doctor', '--project', '--client', 'claude'],
+  ['install', 'appsec-auditor', '--provider', 'claude', '--scope', 'project', '--dry-run'],
+  ['install', 'appsec-auditor', '--provider', 'claude', '--scope', 'project', '--yes'],
+  ['status', '--project'],
+  ['doctor', '--project', '--provider', 'claude'],
+  ['uninstall', '--scope', 'project', '--all', '--dry-run'],
 ];
 const out = [];
 try {

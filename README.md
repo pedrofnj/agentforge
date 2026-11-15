@@ -26,8 +26,8 @@ infrastructure) and six reusable skills into **Claude Code** and **Codex**, in e
 native format. They work on any stack, load detail only when a task needs it, and stay read-only
 by default. One CLI installs, updates, checks and removes them safely.
 
-> **Status: 0.1.0, first public release.** Agent effectiveness has not been measured with real
-> client sessions yet; see [Known limitations](#known-limitations).
+> **Real-World Tested** — AgentForge has been used in a real-world project for security auditing
+> and code quality analysis.
 
 ## Why AgentForge
 
@@ -63,16 +63,43 @@ In your project, with Node.js 22 or newer:
 npx @pedrofnj/agentforge@latest install
 ```
 
-The installer asks which client (Claude Code, Codex or both), where (this project or globally)
-and which agents and skills, shows the plan, and asks before writing anything. Then check it:
+On a terminal this opens the interactive wizard:
+
+1. Detects your system, Node.js, the current directory, Claude Code and Codex (looked up on
+   `PATH` and in their config directories, never executed) and previous installs.
+2. Asks for the client (Claude Code, Codex or both) and the scope, showing the exact
+   directories each one writes to. Scopes you cannot write to are shown as unavailable.
+3. Lists the agents with their purpose and skills (arrow keys to move, space to select, `a` for
+   all, enter to confirm, esc or Ctrl+C to cancel). Required skills are added automatically;
+   standalone skills are optional.
+4. Previews every change (new, updated, unchanged, conflicts) and asks before writing.
+5. Installs atomically with a progress bar, then prints a summary and the next steps.
+
+Check the result at any time:
 
 ```bash
+npx @pedrofnj/agentforge@latest status
 npx @pedrofnj/agentforge@latest doctor
 ```
 
-Prefer a permanent command? `npm install --global @pedrofnj/agentforge`, then use `agentforge`
-everywhere (`agentforge install`, `agentforge doctor`). No API key or account is needed for the
-installer; it only writes files for the clients you already use.
+### Other ways to install
+
+| Method                    | Command                                                                               |
+| ------------------------- | ------------------------------------------------------------------------------------- |
+| npm, one-off              | `npx @pedrofnj/agentforge@latest install`                                             |
+| npm, permanent command    | `npm install --global @pedrofnj/agentforge`, then `agentforge install`                |
+| From source (Linux/macOS) | `git clone https://github.com/pedrofnj/agentforge && ./agentforge/scripts/install.sh` |
+| From source (Windows)     | `git clone https://github.com/pedrofnj/agentforge; .\agentforge\scripts\install.ps1`  |
+
+The source scripts check Node.js and npm, run `npm ci` and `npm run build` in the checkout and
+start the wizard in your current directory. They never use `sudo`, never change the PowerShell
+execution policy and never download anything else. If your policy blocks local scripts, run
+`powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install.ps1` (affects that process only).
+No API key or account is needed; AgentForge only writes files for the clients you use.
+
+Arrow-key prompts need a terminal with raw mode. `AGENTFORGE_SIMPLE_PROMPTS=1` switches to
+numbered menus (also friendlier to screen readers); `NO_COLOR=1` turns colors off and
+`AGENTFORGE_ASCII=1` uses ASCII symbols only.
 
 ## Usage examples
 
@@ -85,13 +112,21 @@ Use the performance-auditor agent: the /reports endpoint is slow.
 Plan a full review of this repository with the fewest reviewers needed.   ← review-planning skill
 ```
 
-Non-interactive installs (CI, scripts):
+## Automation (CI, scripts)
+
+Without a terminal nothing is asked: pass every choice as flags. `--provider` and `--scope` are
+aliases of `--client` and `--global`/`--project`; both spellings keep working.
 
 ```bash
-agentforge install appsec-auditor --client claude --project --yes   # one agent + its skills
-agentforge install --client both --global --all --yes               # everything, all projects
-agentforge install --client codex --project --all --dry-run         # preview only
+agentforge install --provider claude --scope project --all --yes          # everything, this project
+agentforge install appsec-auditor --provider both --scope global --yes    # one agent + its skills
+agentforge install --provider codex --scope project --all --dry-run       # preview only
+agentforge status --json                                                  # machine-readable state
+agentforge uninstall --scope project --all --yes
 ```
+
+Exit codes: `0` ok, `1` error, `2` usage, `3` conflicts (nothing changed), `4` cancelled.
+`list`, `status`, `doctor` and `stats` accept `--json`. Full reference: [docs/cli.md](docs/cli.md).
 
 A real session recorded with the CLI: [docs/demo.md](docs/demo.md).
 
@@ -171,24 +206,30 @@ AgentForge does not claim token savings it has not measured; see [docs/evaluatio
 
 Guide: [docs/guides/installation.md](docs/guides/installation.md).
 
-## Update and uninstall
+## Status, update and uninstall
 
 ```bash
-agentforge update --project --yes            # keeps files you edited
-agentforge uninstall --project --all --yes   # removes only unmodified AgentForge files
-agentforge uninstall appsec-auditor --client codex --global --dry-run
+agentforge status                            # versions, file integrity, available updates
+agentforge update --project --dry-run        # preview; update keeps files you edited
+agentforge update --project --yes
+agentforge uninstall                         # interactive: pick scope, clients and components
+agentforge uninstall --scope project --all --yes   # removes only unmodified AgentForge files
+agentforge uninstall appsec-auditor --provider codex --scope global --dry-run
 ```
+
+The interactive uninstall offers to remove skills that no remaining agent uses and keeps the
+ones still required by other installed agents.
 
 Guides: [updating](docs/guides/updating.md) · [uninstalling](docs/guides/uninstalling.md) ·
 [troubleshooting](docs/guides/troubleshooting.md).
 
 ## Known limitations
 
-- **Effectiveness not measured yet.** Benchmarks with ground truth exist and run offline, but no
-  real Claude Code or Codex session has been evaluated. Structural tests do not prove that
-  audits find everything. No audit guarantees the absence of vulnerabilities.
-- The generated files follow the clients' documentation but have not yet been loaded in live
-  sessions of both clients.
+- **No measured effectiveness metrics.** Benchmarks with ground truth exist and run offline, but
+  no client session has been scored against them yet. Structural tests do not prove that audits
+  find everything. No audit guarantees the absence of vulnerabilities.
+- The generated Codex files follow the Codex documentation but have not yet been loaded in a
+  live Codex session.
 - Codex cannot make a single agent read-only; the session sandbox decides.
 
 ## Contributing

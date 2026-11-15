@@ -1,6 +1,4 @@
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { PathSafetyError } from '../core/paths.js';
 import { BusyError } from '../installer/apply.js';
@@ -10,15 +8,16 @@ import { runList, runStats, runValidate } from './commands/catalog.js';
 import { runDoctor } from './commands/doctor.js';
 import { runEval } from './commands/eval.js';
 import { runOperation } from './commands/operations.js';
+import { runStatus } from './commands/status.js';
+import { PACKAGE_ROOT, packageVersion } from './meta.js';
 import { CancelledError, EXIT, UsageError, type CliContext, type Options } from './context.js';
 
 export { EXIT, type CliContext } from './context.js';
 
-/** Package root: two levels above this file in both `src/cli` and `dist/cli`. */
-const PACKAGE_ROOT = fileURLToPath(new URL('../../', import.meta.url));
-
 type Flag =
   | 'client'
+  | 'provider'
+  | 'scope'
   | 'global'
   | 'project'
   | 'yes'
@@ -40,6 +39,8 @@ type Flag =
 
 const FLAG_HELP: Record<Flag, string> = {
   client: '--client <claude|codex|both>  Client(s) to configure',
+  provider: '--provider <claude|codex|both>  Same as --client',
+  scope: '--scope <global|project>      Same as --global or --project',
   global: '--global                      User-level install (all projects)',
   project: '--project                     Install into the current directory',
   yes: '--yes                         Apply without confirmation (never overwrites conflicts)',
@@ -67,7 +68,8 @@ interface CommandSpec {
   positionals: boolean;
 }
 
-const OP_FLAGS: Flag[] = ['client', 'global', 'project', 'yes', 'dry-run', 'verbose'];
+const SCOPE_FLAGS: Flag[] = ['client', 'provider', 'global', 'project', 'scope'];
+const OP_FLAGS: Flag[] = [...SCOPE_FLAGS, 'yes', 'dry-run', 'verbose'];
 
 const COMMANDS: Record<string, CommandSpec> = {
   install: {
@@ -78,8 +80,14 @@ const COMMANDS: Record<string, CommandSpec> = {
   },
   list: {
     usage: 'list',
-    summary: 'List available components',
-    flags: ['verbose', 'catalog', 'type', 'domain'],
+    summary: 'List available components and where they are installed',
+    flags: ['verbose', 'catalog', 'type', 'domain', 'json'],
+    positionals: false,
+  },
+  status: {
+    usage: 'status',
+    summary: 'Installed components, versions, file integrity and available updates',
+    flags: [...SCOPE_FLAGS, 'catalog', 'json'],
     positionals: false,
   },
   update: {
@@ -97,7 +105,7 @@ const COMMANDS: Record<string, CommandSpec> = {
   doctor: {
     usage: 'doctor',
     summary: 'Diagnose installation and compatibility (read-only)',
-    flags: ['client', 'global', 'project', 'verbose', 'catalog'],
+    flags: [...SCOPE_FLAGS, 'verbose', 'catalog', 'json'],
     positionals: false,
   },
   validate: {
@@ -144,6 +152,7 @@ function mainHelp(): string {
     'Commands:',
     ...cmds,
     '',
+    'Run "agentforge install" on a terminal for the interactive wizard.',
     'Run "agentforge help <command>" for options.',
     EXIT_HELP,
   ].join('\n');
@@ -160,17 +169,14 @@ function commandHelp(name: string, spec: CommandSpec): string {
       EXIT_HELP,
     ].join('\n') +
     (name === 'install'
-      ? '\n\nNon-interactive example: agentforge install --client both --project --all --yes'
-      : '')
+      ? '\n\nNon-interactive example: agentforge install --provider claude --scope project --all --yes'
+      : name === 'uninstall'
+        ? '\n\nNon-interactive example: agentforge uninstall --scope project --all --yes'
+        : '')
   );
 }
 
-function version(): string {
-  const pkg = JSON.parse(readFileSync(path.join(PACKAGE_ROOT, 'package.json'), 'utf8')) as {
-    version: string;
-  };
-  return pkg.version;
-}
+const version = packageVersion;
 
 export async function run(argv: string[], ctx: CliContext): Promise<number> {
   try {
@@ -180,6 +186,8 @@ export async function run(argv: string[], ctx: CliContext): Promise<number> {
       strict: true,
       options: {
         client: { type: 'string' },
+        provider: { type: 'string' },
+        scope: { type: 'string' },
         global: { type: 'boolean' },
         project: { type: 'boolean' },
         yes: { type: 'boolean', short: 'y' },
@@ -226,10 +234,17 @@ export async function run(argv: string[], ctx: CliContext): Promise<number> {
     if (values.all && rest.length > 0)
       throw new UsageError('Use either component ids or --all, not both');
 
+    if (values.client !== undefined && values.provider !== undefined)
+      throw new UsageError('Use either --client or --provider, not both');
+    const client = values.client ?? values.provider;
+    if (values.scope !== undefined && values.scope !== 'global' && values.scope !== 'project')
+      throw new UsageError('--scope must be one of: global, project');
+    if (values.scope !== undefined && (values.global || values.project))
+      throw new UsageError('Use either --scope or --global/--project, not both');
     const opts: Options = {
-      ...(values.client !== undefined ? { client: values.client } : {}),
-      global: values.global ?? false,
-      project: values.project ?? false,
+      ...(client !== undefined ? { client } : {}),
+      global: (values.global ?? false) || values.scope === 'global',
+      project: (values.project ?? false) || values.scope === 'project',
       yes: values.yes ?? false,
       dryRun: values['dry-run'] ?? false,
       verbose: values.verbose ?? false,
@@ -270,6 +285,8 @@ export async function run(argv: string[], ctx: CliContext): Promise<number> {
         return await runStats(ctx, opts, catalogRoot);
       case 'doctor':
         return await runDoctor(ctx, opts, catalogRoot);
+      case 'status':
+        return await runStatus(ctx, opts, catalogRoot);
       case 'install':
       case 'update':
       case 'uninstall':

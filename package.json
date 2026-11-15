@@ -1,6 +1,6 @@
 {
   "name": "@pedrofnj/agentforge",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Modular, token-efficient AI agents and skills for Claude Code and OpenAI Codex.",
   "author": "pedrofnj",
   "homepage": "https://github.com/pedrofnj/agentforge#readme",

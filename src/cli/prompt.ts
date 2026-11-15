@@ -4,12 +4,32 @@ import { CancelledError } from './context.js';
 export interface Choice<T extends string = string> {
   value: T;
   label: string;
+  /** Extra detail (description, paths); shown for the highlighted item. */
+  hint?: string;
+  /** Reason the choice cannot be picked; shown instead of selecting it. */
+  disabled?: string;
+}
+
+export interface SelectOptions<T extends string = string> {
+  /** Value highlighted first. */
+  initial?: T;
+}
+
+export interface MultiselectOptions {
+  /** Values selected at the start. */
+  initial?: readonly string[];
+  /** Refuse an empty selection (default true). */
+  required?: boolean;
 }
 
 export interface Prompter {
-  select<T extends string>(question: string, choices: Choice<T>[]): Promise<T>;
+  select<T extends string>(
+    question: string,
+    choices: Choice<T>[],
+    options?: SelectOptions<T>,
+  ): Promise<T>;
   /** Returns the selected values; "all" selects everything. */
-  multiselect(question: string, choices: Choice[]): Promise<string[]>;
+  multiselect(question: string, choices: Choice[], options?: MultiselectOptions): Promise<string[]>;
   confirm(question: string, defaultYes: boolean): Promise<boolean>;
   close(): void;
 }
@@ -42,7 +62,11 @@ export function createReadlinePrompter(
   }
 
   const menu = (question: string, choices: Choice[]) =>
-    `${question}\n${choices.map((c, i) => `  ${i + 1}) ${c.label}`).join('\n')}\n`;
+    `${question}\n${choices
+      .map((c, i) => `  ${i + 1}) ${c.label}${c.disabled ? ` (unavailable: ${c.disabled})` : ''}`)
+      .join('\n')}\n`;
+  const pickable = <C extends Choice>(c: C | undefined): C | undefined =>
+    c && !c.disabled ? c : undefined;
 
   async function retry<T>(fn: () => Promise<T | undefined>): Promise<T> {
     for (let i = 0; i < MAX_ATTEMPTS; i++) {
@@ -57,17 +81,20 @@ export function createReadlinePrompter(
     select(question, choices) {
       return retry(async () => {
         const n = Number(await ask(`${menu(question, choices)}> `));
-        return choices[n - 1]?.value;
+        return pickable(choices[n - 1])?.value;
       });
     },
-    multiselect(question, choices) {
+    multiselect(question, choices, options = {}) {
+      const required = options.required ?? true;
       return retry(async () => {
         const answer = await ask(
-          `${menu(question, choices)}Numbers separated by commas, or "all": `,
+          `${menu(question, choices)}Numbers separated by commas, or "all"${required ? '' : ' (Enter for none)'}: `,
         );
-        if (answer.toLowerCase() === 'all') return choices.map((c) => c.value);
+        if (answer === '' && !required) return [];
+        if (answer.toLowerCase() === 'all')
+          return choices.filter((c) => !c.disabled).map((c) => c.value);
         const picks = answer.split(',').map((s) => Number(s.trim()));
-        if (picks.length === 0 || picks.some((n) => !choices[n - 1])) return undefined;
+        if (picks.length === 0 || picks.some((n) => !pickable(choices[n - 1]))) return undefined;
         return [...new Set(picks.map((n) => choices[n - 1]!.value))];
       });
     },

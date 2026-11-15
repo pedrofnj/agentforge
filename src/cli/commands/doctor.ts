@@ -6,6 +6,8 @@ import { readJournal } from '../../installer/apply.js';
 import { inspectPath } from '../../installer/fs-safe.js';
 import { locationDir, managedFilePath, readState, stateDirFor } from '../../installer/state.js';
 import { discoverCatalog } from '../../registry/index.js';
+import { findExecutable, unwritable, CLIENT_EXECUTABLES } from '../environment.js';
+import { symbolsFor } from '../tui/symbols.js';
 import {
   EXIT,
   resolveClients,
@@ -27,15 +29,21 @@ function claudeSettingsFiles(scope: InstallScope, ctx: CliContext): string[] {
 }
 
 /** Reads only permissions.defaultMode; never writes settings. */
-async function readDefaultMode(file: string): Promise<string | undefined> {
+async function readSettings(
+  file: string,
+): Promise<{ exists: boolean; invalid?: string; defaultMode?: string }> {
+  let text: string;
   try {
-    const json = JSON.parse(await readFile(file, 'utf8')) as {
-      permissions?: { defaultMode?: unknown };
-    };
-    const mode = json.permissions?.defaultMode;
-    return typeof mode === 'string' ? mode : undefined;
+    text = await readFile(file, 'utf8');
   } catch {
-    return undefined;
+    return { exists: false };
+  }
+  try {
+    const json = JSON.parse(text) as { permissions?: { defaultMode?: unknown } } | null;
+    const mode = json?.permissions?.defaultMode;
+    return { exists: true, ...(typeof mode === 'string' ? { defaultMode: mode } : {}) };
+  } catch (e) {
+    return { exists: true, invalid: (e as Error).message };
   }
 }
 
@@ -84,6 +92,11 @@ export async function runDoctor(
       (await exists(home)) ? 'ok' : 'warn',
       `Claude Code user dir ${home}${(await exists(home)) ? '' : ' not found (is Claude Code installed?)'}`,
     );
+    const exe = await findExecutable(CLIENT_EXECUTABLES['claude-code'], ctx.env, ctx.osPlatform);
+    add(
+      exe ? 'ok' : 'warn',
+      exe ? `claude executable on PATH: ${exe}` : 'claude executable not found on PATH',
+    );
   }
   if (platforms.includes('codex')) {
     const codexHome = ctx.env.CODEX_HOME || path.join(ctx.homeDir, '.codex');
@@ -95,6 +108,11 @@ export async function runDoctor(
         found ? 'ok' : 'warn',
         `Codex home ${codexHome}${found ? '' : ' not found (is Codex installed?)'}`,
       );
+    const exe = await findExecutable(CLIENT_EXECUTABLES.codex, ctx.env, ctx.osPlatform);
+    add(
+      exe ? 'ok' : 'warn',
+      exe ? `codex executable on PATH: ${exe}` : 'codex executable not found on PATH',
+    );
   }
 
   for (const scope of scopes) {
@@ -114,6 +132,16 @@ export async function runDoctor(
     }
     const comps = state.components.filter((c) => platforms.includes(c.platform));
     add('ok', `${scope}: ${comps.length} managed component(s) (state: ${stateDir})`);
+    for (const dir of await unwritable(scope, platforms, ctx))
+      add(comps.length > 0 ? 'fail' : 'warn', `${scope}: not writable: ${dir}`);
+    for (const c of comps) {
+      if (!catalog.entries.some((e) => e.manifest.id === c.id)) {
+        add(
+          'warn',
+          `${scope}: ${ADAPTERS[c.platform].displayName} / ${c.id} is not in this catalog (removed or renamed); "agentforge uninstall ${c.id} --${scope}" removes it`,
+        );
+      }
+    }
     if (opts.verbose) {
       for (const p of platforms) {
         for (const loc of ['skills', 'agents'] as const) {
@@ -143,10 +171,14 @@ export async function runDoctor(
       if (!counts.unsafe && !counts.missing && !counts.modified && opts.verbose)
         add('ok', `${label}: intact`);
     }
-    if (comps.some((c) => c.platform === 'claude-code' && c.kind === 'agent')) {
+    if (platforms.includes('claude-code')) {
       for (const file of claudeSettingsFiles(scope, ctx)) {
-        const mode = await readDefaultMode(file);
-        if (mode && OVERRIDING_MODES.has(mode)) {
+        const settings = await readSettings(file);
+        if (settings.invalid)
+          add('warn', `${scope}: ${file} is not valid JSON (${settings.invalid})`);
+        const mode = settings.defaultMode;
+        const agents = comps.some((c) => c.platform === 'claude-code' && c.kind === 'agent');
+        if (agents && mode && OVERRIDING_MODES.has(mode)) {
           add(
             'warn',
             `${scope}: ${file} sets defaultMode "${mode}", which overrides the agents' plan mode (read-only then relies on tools and instructions)`,
@@ -168,13 +200,29 @@ export async function runDoctor(
     }
   }
 
+  const failed = results.some(([l]) => l === 'fail');
+  if (opts.json) {
+    ctx.out(
+      JSON.stringify(
+        {
+          ok: !failed,
+          checks: results.map(([level, message]) => ({ level, message })),
+        },
+        null,
+        2,
+      ),
+    );
+    return failed ? EXIT.ERROR : EXIT.OK;
+  }
   const st = styleOf(ctx);
+  const sym = symbolsFor(ctx.terminal?.unicode ?? false);
+  const glyph = (g: string) => (st.enabled ? `${g} ` : '');
   const icon: Record<Level, string> = {
-    ok: st.green('OK  '),
-    warn: st.yellow('WARN'),
-    fail: st.red('FAIL'),
+    ok: st.green(`${glyph(sym.ok)}OK  `),
+    warn: st.yellow(`${glyph(sym.warn)}WARN`),
+    fail: st.red(`${glyph(sym.fail)}FAIL`),
   };
   for (const [level, msg] of results)
     (level === 'fail' ? ctx.err : ctx.out)(`${icon[level]} ${msg}`);
-  return results.some(([l]) => l === 'fail') ? EXIT.ERROR : EXIT.OK;
+  return failed ? EXIT.ERROR : EXIT.OK;
 }

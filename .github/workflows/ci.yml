@@ -38,6 +38,58 @@ jobs:
       - name: Evaluation framework (offline)
         run: node dist/cli/bin.js eval validate
 
+  install-scripts:
+    name: install scripts (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      # Each run uses a throwaway HOME and project directory: the runner's real
+      # client directories are never touched.
+      - name: install.sh (non-interactive, project scope)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          sandbox="$(mktemp -d)"
+          mkdir -p "$sandbox/home" "$sandbox/project"
+          cd "$sandbox/project"
+          export HOME="$sandbox/home" XDG_STATE_HOME="$sandbox/state"
+          "$GITHUB_WORKSPACE/scripts/install.sh" --provider both --scope project --all --yes
+          node "$GITHUB_WORKSPACE/dist/cli/bin.js" status --project --json > status.json
+          node -e "const s=require('./status.json'); const n=s.scopes[0].components.length; if (n !== 22) { console.error('expected 22 components, got', n); process.exit(1) }"
+          node "$GITHUB_WORKSPACE/dist/cli/bin.js" uninstall --scope project --all --yes
+          test ! -e .claude/agents/appsec-auditor.md
+          set +e
+          "$GITHUB_WORKSPACE/scripts/install.sh" --provider nope --scope project --all --yes
+          test $? -eq 2
+      - name: install.ps1 (non-interactive, project scope)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $sandbox = Join-Path $env:RUNNER_TEMP 'agentforge-sandbox'
+          New-Item -ItemType Directory -Force "$sandbox\home", "$sandbox\project" | Out-Null
+          Set-Location "$sandbox\project"
+          $env:USERPROFILE = "$sandbox\home"
+          $env:LOCALAPPDATA = "$sandbox\localappdata"
+          & "$env:GITHUB_WORKSPACE\scripts\install.ps1" --provider both --scope project --all --yes
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          $status = node "$env:GITHUB_WORKSPACE/dist/cli/bin.js" status --project --json | ConvertFrom-Json
+          if ($status.scopes[0].components.Count -ne 22) { Write-Error 'expected 22 components'; exit 1 }
+          node "$env:GITHUB_WORKSPACE/dist/cli/bin.js" uninstall --scope project --all --yes
+          if (Test-Path .claude/agents/appsec-auditor.md) { exit 1 }
+          & "$env:GITHUB_WORKSPACE\scripts\install.ps1" --provider nope --scope project --all --yes
+          if ($LASTEXITCODE -ne 2) { exit 1 }
+          exit 0
+
   package:
     needs: check
     uses: ./.github/workflows/package-validation.yml

@@ -1,5 +1,6 @@
 import { ADAPTERS } from '../adapters/index.js';
 import { conflictMessage, type ActionKind, type Plan } from '../installer/plan.js';
+import { plainStyle, type Style } from './style.js';
 
 const ORDER: ActionKind[] = [
   'create',
@@ -13,7 +14,12 @@ const ORDER: ActionKind[] = [
 ];
 
 /** Concise plan summary; per-file detail only with --verbose. */
-export function formatPlan(plan: Plan, location: string, verbose: boolean): string[] {
+export function formatPlan(
+  plan: Plan,
+  location: string,
+  verbose: boolean,
+  st: Style = plainStyle,
+): string[] {
   const title = plan.operation[0]!.toUpperCase() + plan.operation.slice(1);
   const lines = [`${title} plan (${plan.scope}: ${location})`];
   if (plan.components.length === 0) lines.push('  No components affected.');
@@ -34,13 +40,27 @@ export function formatPlan(plan: Plan, location: string, verbose: boolean): stri
   }
   if (verbose) lines.push(`  State: ${plan.stateDir}`);
   if (plan.warnings.length > 0) {
-    lines.push('Warnings:', ...plan.warnings.map((w) => `  - ${w}`));
+    lines.push(st.yellow('Warnings:'), ...plan.warnings.map((w) => `  - ${w}`));
   }
   if (plan.conflicts.length > 0) {
     lines.push(
-      'Conflicts:',
+      st.red('Conflicts:'),
       ...plan.conflicts.map((c) => `  ! ${c.absPath}: ${conflictMessage[c.reason]}`),
     );
   }
   return lines;
+}
+
+/** One-line totals for the preview: what will be new, updated, removed or blocked. */
+export function previewCounts(plan: Plan, st: Style = plainStyle): string {
+  const n = (...kinds: ActionKind[]) => plan.actions.filter((a) => kinds.includes(a.kind)).length;
+  const parts = [
+    `${n('create')} new`,
+    `${n('update', 'overwrite')} updated`,
+    `${n('remove')} removed`,
+    `${n('unchanged', 'adopt')} unchanged`,
+    `${n('keep-modified')} kept (local edits)`,
+  ];
+  const conflicts = plan.conflicts.length;
+  return `Files: ${parts.join(', ')}, ${conflicts > 0 ? st.red(`${conflicts} conflict(s)`) : '0 conflicts'}`;
 }

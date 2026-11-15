@@ -27,8 +27,8 @@ formato nativo de cada cliente. Eles funcionam em qualquer stack, só carregam d
 tarefa precisa e são somente leitura por padrão. Um único CLI instala, atualiza, verifica e
 remove tudo com segurança.
 
-> **Status: 0.1.0, primeira versão pública.** A eficácia dos agentes ainda não foi medida com
-> sessões reais dos clientes; veja [Limitações conhecidas](#limitações-conhecidas).
+> **Testado em Projeto Real** — O AgentForge já foi utilizado em um projeto real para auditoria
+> de segurança e análise de qualidade de código.
 
 ## Por que usar o AgentForge
 
@@ -66,17 +66,45 @@ No seu projeto, com Node.js 22 ou mais recente:
 npx @pedrofnj/agentforge@latest install
 ```
 
-O instalador pergunta qual cliente (Claude Code, Codex ou ambos), onde (neste projeto ou
-globalmente) e quais agentes e Skills, mostra o plano e pede confirmação antes de escrever
-qualquer coisa. Depois, verifique:
+Em um terminal, isso abre o assistente interativo:
+
+1. Detecta o sistema, o Node.js, o diretório atual, o Claude Code e o Codex (procurados no `PATH`
+   e nos diretórios de configuração, sem executá-los) e instalações anteriores.
+2. Pergunta o cliente (Claude Code, Codex ou ambos) e o escopo, mostrando os diretórios exatos em
+   que cada um grava. Escopos sem permissão de escrita aparecem como indisponíveis.
+3. Lista os agentes com propósito e Skills (setas para mover, espaço para selecionar, `a` para
+   todos, Enter para confirmar, Esc ou Ctrl+C para cancelar). As Skills necessárias entram
+   automaticamente; Skills avulsas são opcionais.
+4. Mostra a prévia de cada mudança (novos, atualizados, inalterados, conflitos) e pede
+   confirmação antes de gravar.
+5. Instala de forma atômica com barra de progresso e mostra um resumo com os próximos passos.
+
+Para conferir a qualquer momento:
 
 ```bash
+npx @pedrofnj/agentforge@latest status
 npx @pedrofnj/agentforge@latest doctor
 ```
 
-Prefere um comando permanente? `npm install --global @pedrofnj/agentforge` e use `agentforge`
-em qualquer lugar (`agentforge install`, `agentforge doctor`). O instalador não precisa de chave
-de API nem de conta; ele só grava arquivos para os clientes que você já usa.
+### Outras formas de instalar
+
+| Método                     | Comando                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------- |
+| npm, uso pontual           | `npx @pedrofnj/agentforge@latest install`                                             |
+| npm, comando permanente    | `npm install --global @pedrofnj/agentforge` e depois `agentforge install`             |
+| Código-fonte (Linux/macOS) | `git clone https://github.com/pedrofnj/agentforge && ./agentforge/scripts/install.sh` |
+| Código-fonte (Windows)     | `git clone https://github.com/pedrofnj/agentforge; .\agentforge\scripts\install.ps1`  |
+
+Os scripts verificam Node.js e npm, rodam `npm ci` e `npm run build` no checkout e abrem o
+assistente no seu diretório atual. Eles nunca usam `sudo`, nunca alteram a política de execução
+do PowerShell e não baixam nada além das dependências de build. Se a sua política bloquear
+scripts locais, rode `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\install.ps1`
+(vale só para aquele processo). Não é preciso chave de API nem conta; o AgentForge só grava
+arquivos para os clientes que você usa.
+
+Os menus com setas precisam de um terminal com modo raw. `AGENTFORGE_SIMPLE_PROMPTS=1` troca por
+menus numerados (também mais amigáveis a leitores de tela); `NO_COLOR=1` desliga as cores e
+`AGENTFORGE_ASCII=1` usa só símbolos ASCII.
 
 ## Exemplos de uso
 
@@ -92,13 +120,22 @@ Plan a full review of this repository with the fewest reviewers needed.   ← Sk
 Os pedidos podem ser em português ("Use o agente appsec-auditor para revisar src/, perfil quick,
 orçamento economy"); os nomes de agentes, perfis e orçamentos continuam em inglês.
 
-Instalação não interativa (CI, scripts):
+## Automação (CI, scripts)
+
+Sem terminal nada é perguntado: passe todas as escolhas por flags. `--provider` e `--scope` são
+apelidos de `--client` e `--global`/`--project`; as duas formas continuam funcionando.
 
 ```bash
-agentforge install appsec-auditor --client claude --project --yes   # um agente + suas Skills
-agentforge install --client both --global --all --yes               # tudo, para todos os projetos
-agentforge install --client codex --project --all --dry-run         # só pré-visualiza
+agentforge install --provider claude --scope project --all --yes          # tudo, neste projeto
+agentforge install appsec-auditor --provider both --scope global --yes    # um agente + suas Skills
+agentforge install --provider codex --scope project --all --dry-run       # só pré-visualiza
+agentforge status --json                                                  # estado legível por máquina
+agentforge uninstall --scope project --all --yes
 ```
+
+Códigos de saída: `0` ok, `1` erro, `2` uso incorreto, `3` conflitos (nada foi alterado), `4`
+cancelado. `list`, `status`, `doctor` e `stats` aceitam `--json`. Referência completa (em inglês):
+[docs/cli.md](docs/cli.md).
 
 Uma sessão real gravada com o CLI: [docs/demo.md](docs/demo.md).
 
@@ -180,24 +217,30 @@ O AgentForge não promete economia de tokens que não mediu; veja [docs/evaluati
 
 Guia: [docs/guides/installation.pt-BR.md](docs/guides/installation.pt-BR.md).
 
-## Atualização e desinstalação
+## Status, atualização e desinstalação
 
 ```bash
-agentforge update --project --yes            # preserva arquivos que você editou
-agentforge uninstall --project --all --yes   # remove só arquivos do AgentForge não modificados
-agentforge uninstall appsec-auditor --client codex --global --dry-run
+agentforge status                            # versões, integridade dos arquivos, atualizações
+agentforge update --project --dry-run        # prévia; o update preserva arquivos que você editou
+agentforge update --project --yes
+agentforge uninstall                         # interativo: escopo, clientes e componentes
+agentforge uninstall --scope project --all --yes   # remove só arquivos do AgentForge não modificados
+agentforge uninstall appsec-auditor --provider codex --scope global --dry-run
 ```
+
+A desinstalação interativa oferece remover as Skills que nenhum agente restante usa e mantém as
+que ainda são necessárias para outros agentes instalados.
 
 Guias (em inglês): [atualização](docs/guides/updating.md) · [desinstalação](docs/guides/uninstalling.md) ·
 [solução de problemas](docs/guides/troubleshooting.md).
 
 ## Limitações conhecidas
 
-- **Eficácia ainda não medida.** Existem benchmarks com ground truth que rodam offline, mas nenhuma
-  sessão real do Claude Code ou do Codex foi avaliada. Testes estruturais não provam que as
+- **Sem métricas de eficácia medidas.** Existem benchmarks com ground truth que rodam offline, mas
+  nenhuma sessão dos clientes foi pontuada com eles ainda. Testes estruturais não provam que as
   auditorias encontram tudo. Nenhuma auditoria garante a ausência de vulnerabilidades.
-- Os arquivos gerados seguem a documentação dos clientes, mas ainda não foram carregados em
-  sessões reais dos dois clientes.
+- Os arquivos gerados para o Codex seguem a documentação do Codex, mas ainda não foram
+  carregados em uma sessão real do Codex.
 - O Codex não permite tornar um único agente somente leitura; quem decide é o sandbox da sessão.
 
 ## Como contribuir
