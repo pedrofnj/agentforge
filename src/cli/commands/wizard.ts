@@ -157,6 +157,8 @@ export async function askComponents(
           hint: `${m.description}${skills.length > 0 ? ` Skills: ${skills.join(', ')}.` : ''}`,
         };
       }),
+      // Empty is allowed: the next question then installs skills only.
+      { required: false },
     );
     const resolved = resolveSelection(catalog, picked)
       .filter((e) => e.manifest.kind === 'skill')
@@ -170,14 +172,17 @@ export async function askComponents(
       (e) => e.manifest.kind === 'skill' && !resolved.includes(e.manifest.id),
     );
     if (extra.length > 0) {
+      const skillsOnly = picked.length === 0;
       const more = await prompter.multiselect(
-        'Add standalone skills? (optional, enter to skip)',
+        skillsOnly
+          ? 'Which skills do you want to install?'
+          : 'Add standalone skills? (optional, enter to skip)',
         extra.map((e) => ({
           value: e.manifest.id,
           label: label(e.manifest.id, e.manifest.name, e.manifest.version),
           hint: e.manifest.description,
         })),
-        { required: false },
+        { required: skillsOnly },
       );
       return [...picked, ...more];
     }

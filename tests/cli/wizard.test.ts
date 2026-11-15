@@ -77,6 +77,15 @@ describe('install wizard', () => {
     );
   });
 
+  it('installs standalone skills without any agent', async () => {
+    const prompter = fakePrompter(['claude', 'project', [], ['review-planning'], true]);
+    const r = await sbx.cli(['install'], { interactive: true, prompter });
+    expect(r.code, r.err).toBe(0);
+    expect(prompter.asked[3]).toBe('Which skills do you want to install?');
+    expect(existsSync(claudeSkill('review-planning'))).toBe(true);
+    expect(existsSync(path.join(sbx.project, '.claude', 'agents'))).toBe(false);
+  });
+
   it('never prompts without a terminal', async () => {
     const r = await sbx.cli(['install']);
     expect(r.code).toBe(2);
